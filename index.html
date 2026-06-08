@@ -1,1 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Data Engineering Architecture Report</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #dee2e6;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 80vh;
+        }
+
+        /* Style the tab */
+        .tab {
+            width: 25%;
+            background-color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            background-color: inherit;
+            color: white;
+            padding: 16px 24px;
+            width: 100%;
+            border: none;
+            outline: none;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+            border-bottom: 1px solid #4a6278;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #4a6278;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        /* Create an active/current "tab button" class */
+        .tab button.active {
+            background-color: #ecf0f1;
+            color: var(--primary-color);
+            font-weight: bold;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 40px;
+            width: 75%;
+            overflow-y: auto;
+        }
+
+        .tabcontent h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .tabcontent h3 {
+            color: var(--secondary-color);
+            margin-top: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table, th, td {
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .note {
+            background-color: #e8f4f8;
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Enterprise Data Engineering Concepts & Architecture</h1>
+    <p>A comprehensive reference guide for modern data architecture, modeling, and governance.</p>
+</header>
+
+<div class="container">
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Medallion')">1. Medallion Architecture</button>
+        <button class="tablinks" onclick="openTab(event, 'Modeling')">2. Dimensional Modeling</button>
+        <button class="tablinks" onclick="openTab(event, 'DataVault')">3. Data Vault vs. Star Schema</button>
+        <button class="tablinks" onclick="openTab(event, 'Transformations')">4. Transformations (dbt vs. CI/CD)</button>
+        <button class="tablinks" onclick="openTab(event, 'DataProducts')">5. Data Products & Aggregates</button>
+        <button class="tablinks" onclick="openTab(event, 'DataMesh')">6. Data Mesh & Organization</button>
+        <button class="tablinks" onclick="openTab(event, 'Governance')">7. Governance & Catalogs</button>
+        <button class="tablinks" onclick="openTab(event, 'KnowledgePyramid')">8. The DE Knowledge Pyramid</button>
+    </div>
+
+    <div id="Medallion" class="tabcontent" style="display: block;">
+        <h2>The Medallion Architecture & Data Layers</h2>
+        <p>The Medallion architecture organizes data logically as it flows from raw source systems to business-ready assets. The general rule is: <strong>Normalize for integrity (left) and denormalize for performance/usability (right).</strong></p>
+        
+        <h3>Standard Flow vs. Custom Enterprise Flow</h3>
+        <p>In a mature enterprise pipeline, the physical implementation expands to include operational stops:</p>
+        <ul>
+            <li><strong>Bronze (STG):</strong> Landing zone. Ingests raw data from multiple sources with no changes.</li>
+            <li><strong>Bronze (ODS - Operational Data Store):</strong> Deduplicates staging data based on key columns and last modified times to capture the latest operational state via upserts.</li>
+            <li><strong>Silver (CDM - Common Data Model):</strong> The Conformed Domain Layer. Data is normalized and aligned to enterprise domains. It holds the current state and acts as the "Single Source of Truth" for operational analytics.</li>
+            <li><strong>Gold (Core/Historical):</strong> The Dimensional Model. Denormalized into Facts and Dimensions. History is captured here using SCD Type 1 (Facts) and SCD Type 2 (Dims).</li>
+            <li><strong>Gold (Data Products):</strong> Decoupled, highly aggregated tables or views designed for specific business users to self-serve.</li>
+        </ul>
+
+        <div class="note">
+            <strong>What is an "Operational Purpose" in the Data Warehouse?</strong><br>
+            It refers to <em>Operational Analytics</em>, not high-speed application transactions. The CDM layer integrates disparate source systems (e.g., Salesforce, Zendesk) to create unified metrics that can be fed back into business applications via Reverse ETL.
+        </div>
+    </div>
+
+    <div id="Modeling" class="tabcontent">
+        <h2>Dimensional Modeling (Star Schema)</h2>
+        <p>The core philosophy of dimensional modeling is separating the quantitative metrics from the descriptive context to enable high-performance analytics.</p>
+        
+        <h3>Facts vs. Dimensions</h3>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Fact Tables (The Numbers)</th>
+                <th>Dimension Tables (The Context)</th>
+            </tr>
+            <tr>
+                <td><strong>Purpose</strong></td>
+                <td>To record the measurement of an event.</td>
+                <td>To provide the "Who, What, Where, When".</td>
+            </tr>
+            <tr>
+                <td><strong>Structure</strong></td>
+                <td>Contains foreign keys and numeric metrics (Price, Quantity).</td>
+                <td>Contains primary keys and descriptive text attributes.</td>
+            </tr>
+            <tr>
+                <td><strong>Data Volume</strong></td>
+                <td>Massive (Billions of rows).</td>
+                <td>Small to medium.</td>
+            </tr>
+        </table>
+
+        <h3>The Grain</h3>
+        <p>The "Grain" is the fundamental starting point of any dimensional design. It represents the atomic level of detail stored in your fact table (e.g., "One row per line item on a receipt"). Defining the grain dictates what dimensions can be attached and guarantees query accuracy.</p>
+        
+        <h3>Real Transactional Data vs. Fact Tables</h3>
+        <p>Transactional data (OLTP) is highly normalized to write data safely and fast. Fact tables (OLAP) are denormalized for reading data quickly. You separate Facts from Dims to prevent massive storage bloat and to handle Slowly Changing Dimensions (SCDs) efficiently without updating billions of rows.</p>
+    </div>
+
+    <div id="DataVault" class="tabcontent">
+        <h2>Data Vault 2.0 vs. Star Schema</h2>
+        <p>There is often confusion between a centralized enterprise repository and a true Data Vault. They solve different problems.</p>
+        
+        <h3>The Data Vault Architecture</h3>
+        <p>A Data Vault is an agile, insert-only methodology typically placed in the Silver layer to handle extreme structural changes from upstream systems without breaking the warehouse.</p>
+        <ul>
+            <li><strong>Hubs:</strong> Represent core business entities. They contain <em>only</em> the unique Business Key (e.g., Customer ID).</li>
+            <li><strong>Links:</strong> Represent relationships or transactions between Hubs.</li>
+            <li><strong>Satellites:</strong> Hold all descriptive context and history. They are insert-only to provide an auditor-grade history.</li>
+        </ul>
+
+        <h3>Why a Star Schema with SCD Type 2 is NOT a Data Vault</h3>
+        <p>If your architecture deduplicates in the ODS, keeps only the current state in the CDM, and captures history in the Gold Core via SCD Type 2 Dimensions, you are running a <strong>Kimball Dimensional Model</strong>, not a Data Vault.</p>
+        <p>This is highly effective: it keeps the Silver layer lightweight and passes historical tracking to the Gold layer where analytical queries actually require it.</p>
+    </div>
+
+    <div id="Transformations" class="tabcontent">
+        <h2>Transformations & CI/CD Approaches</h2>
+        <p>When executing transformations inside a cloud warehouse like Snowflake, organizations generally choose between two orchestration paths based on team structure and legacy constraints.</p>
+        
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Snowflake Code + Jenkins / UDeploy</th>
+                <th>dbt (Data Build Tool) + Snowflake</th>
+            </tr>
+            <tr>
+                <td><strong>The Approach</strong></td>
+                <td>Custom-coded infrastructure. High control.</td>
+                <td>Tool-driven framework. High automation.</td>
+            </tr>
+            <tr>
+                <td><strong>Code Written</strong></td>
+                <td>Full DDL/DML (`CREATE`, `MERGE`, Stored Procs).</td>
+                <td>Clean `SELECT` statements + Jinja templates.</td>
+            </tr>
+            <tr>
+                <td><strong>Dependency / DAGs</strong></td>
+                <td>Managed manually by the engineer via Tasks or Airflow.</td>
+                <td>Calculated automatically via `{{ ref() }}` tags.</td>
+            </tr>
+            <tr>
+                <td><strong>Data Quality</strong></td>
+                <td>Requires custom SQL testing scripts.</td>
+                <td>Built-in declarative tests (`not_null`, `unique`).</td>
+            </tr>
+            <tr>
+                <td><strong>Best For...</strong></td>
+                <td>Strictly regulated enterprise IT teams.</td>
+                <td>Agile data teams and Analytics Engineers.</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="DataProducts" class="tabcontent">
+        <h2>Aggregated Tables vs. Data Products</h2>
+        <p>In the Gold layer, an aggregated table and a data product might look identical in the database, but they serve completely different operational scopes.</p>
+        
+        <ul>
+            <li><strong>Aggregated Table:</strong> A technical asset designed to optimize query performance (e.g., pre-summing rows). It requires technical intervention and joins to be fully utilized.</li>
+            <li><strong>Data Product:</strong> A philosophical shift. It is a self-contained asset tailored for business users. It requires zero technical joins (often a "One Big Table" or OBT) and includes metadata, SLAs, and Data Contracts.</li>
+        </ul>
+
+        <h3>Guaranteeing Trust (Data Contracts & Orchestration)</h3>
+        <p>To ensure a Data Product refreshes accurately, you cannot rely on scheduled clock times. You must use:</p>
+        <ol>
+            <li><strong>Sensor-Based Orchestration (Airflow/Dagster):</strong> Downstream layers only execute upon receiving a success signal from upstream layers.</li>
+            <li><strong>Data Contracts:</strong> Agreements with software developers that source schemas will not change without warning.</li>
+        </ol>
+    </div>
+
+    <div id="DataMesh" class="tabcontent">
+        <h2>Data Mesh & Organizational Decentralization</h2>
+        <p>Data Mesh is a decentralized socio-technical approach. It shifts data away from monolithic, centralized IT teams and gives ownership back to the business domains.</p>
+        
+        <h3>Centralized vs. Decentralized</h3>
+        <ul>
+            <li><strong>Centralized:</strong> One data team manages all pipelines. Pros: Consistency. Cons: Becomes a massive bottleneck; engineers lack business context.</li>
+            <li><strong>Decentralized:</strong> Individual business domains (Sales, Finance) build their own pipelines. Pros: Speed and deep business alignment. Cons: Requires strict governance to avoid chaos.</li>
+        </ul>
+
+        <h3>The 4 Pillars of Data Mesh</h3>
+        <ol>
+            <li><strong>Domain-Driven Ownership:</strong> The people closest to the data own the pipelines.</li>
+            <li><strong>Data as a Product:</strong> Domains serve clean, reliable data to the rest of the company.</li>
+            <li><strong>Self-Serve Data Platform:</strong> A central IT team provides the automated infrastructure so domains don't have to build servers from scratch.</li>
+            <li><strong>Federated Computational Governance:</strong> Global standards are automated into the platform to ensure domain data can interoperate securely.</li>
+        </ol>
+    </div>
+
+    <div id="Governance" class="tabcontent">
+        <h2>Data Governance, Semantics & Catalogs</h2>
+        <p>A Data Catalog is the "Google for your company's data," acting as a centralized portal that combines several distinct pillars of governance.</p>
+
+        <table>
+            <tr>
+                <th>Pillar</th>
+                <th>Definition</th>
+                <th>The Question it Answers</th>
+            </tr>
+            <tr>
+                <td><strong>Technical Metadata</strong></td>
+                <td>The physical structure (column types, tables).</td>
+                <td>"What is the shape of the data?"</td>
+            </tr>
+            <tr>
+                <td><strong>Data Dictionary</strong></td>
+                <td>Technical descriptions of a specific database.</td>
+                <td>"What is inside this specific table?"</td>
+            </tr>
+            <tr>
+                <td><strong>Business Glossary</strong></td>
+                <td>Human-language definitions of company terms.</td>
+                <td>"What do we define as an 'Active Customer'?"</td>
+            </tr>
+            <tr>
+                <td><strong>Semantics</strong></td>
+                <td>The underlying business logic and translation.</td>
+                <td>"How is this metric calculated?"</td>
+            </tr>
+            <tr>
+                <td><strong>Data Lineage</strong></td>
+                <td>The visual map of data movement.</td>
+                <td>"Where did this data come from (Bronze -> Gold)?"</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>The Power of Semantics:</strong> Embedding semantics in the CDM/Silver layer ensures that business rules (like filtering out test accounts for revenue calculations) are coded once, establishing a single source of truth that flows reliably into all downstream Data Products.
+        </div>
+    </div>
+
+    <div id="KnowledgePyramid" class="tabcontent">
+        <h2>The Data Engineering Knowledge Pyramid</h2>
+        <p>Understanding where these concepts fit helps structure your career development and daily engineering habits.</p>
+        
+        <ul>
+            <li><strong>Tier 1: Infrastructure (The "How"):</strong> Row vs. Columnar, ACID, Compute/Storage separation. <em>Level: Master/Hands-On.</em></li>
+            <li><strong>Tier 2: Architecture & Modeling (The "What"):</strong> Medallion layers, Star Schemas, SCD Type 2. <em>Level: Fluent/Architectural.</em></li>
+            <li><strong>Tier 3: Governance & Strategy (The "Why"):</strong> Data Mesh, Data Products, Semantics, Centralized vs. Decentralized. <em>Level: Aware/Strategic.</em></li>
+        </ul>
+
+        <h3>Practical Daily Application</h3>
+        <ol>
+            <li><strong>Audit Strategy:</strong> Use row-level hashing in your Gold tables to quickly identify logic breaks during SCD Type 2 merges.</li>
+            <li><strong>Hard-Code Semantics Left:</strong> Stop writing repeated `CASE WHEN` logic in Gold. Build semantically valid flags in the CDM layer.</li>
+            <li><strong>Self-Documenting Workflow:</strong> Use your commit messages and dbt documentation to define the <em>Semantics</em> and <em>Glossary Terms</em>, not just the technical changes.</li>
+        </ol>
+    </div>
+
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        
+        // Hide all tab content
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        
+        // Remove the active class from all buttons
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+</body>
+</html>
