@@ -38,6 +38,7 @@
 
         .container {
             display: flex;
+            flex-direction: column; /* Stacks navigation on top of content */
             max-width: 1700px;
             margin: 20px auto;
             background: white;
@@ -48,47 +49,70 @@
         }
 
         .tab {
-            width: 230px;
-            min-width: 230px;
+            width: 100%;
             background-color: var(--tab-bg);
             display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
+            flex-direction: row; /* Arranges tabs side-by-side horizontally */
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto; /* Enables swipeable/scrollable tabs on mobile */
+            white-space: nowrap; /* Prevents text wrapping onto new lines */
+            position: sticky; /* Keeps the navigation bar pinned to the top */
+            top: 0;
+            z-index: 100;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS devices */
+        }
+
+        /* Hide default scrollbars for a cleaner navigation bar appearance */
+        .tab::-webkit-scrollbar {
+            height: 5px;
+        }
+        .tab::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
         }
 
         .tab button {
             background-color: inherit;
             color: var(--text-color);
-            padding: 14px 18px;
-            width: 100%;
+            padding: 14px 20px;
+            width: auto; /* Dynamic sizing based on content text */
+            flex: 0 0 auto; /* Stops tabs from forcing squished sizes */
             border: none;
             outline: none;
-            text-align: left;
+            text-align: center;
             cursor: pointer;
             transition: 0.2s;
             font-size: 13px;
             font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-            border-left: 5px solid transparent;
+            border-bottom: 4px solid transparent; /* Visual layout swap to bottom borders */
+            border-left: none;
         }
 
         .tab button:hover {
             background-color: var(--tab-hover);
-            border-left: 5px solid var(--secondary-color);
+            border-bottom: 4px solid var(--secondary-color);
+            border-left: none;
         }
 
         .tab button.active {
             background-color: white;
             color: var(--primary-color);
-            border-left: 5px solid var(--primary-color);
+            border-bottom: 4px solid var(--primary-color);
+            border-left: none;
         }
 
         .tabcontent {
             display: none;
-            padding: 40px 55px;
+            padding: 30px 20px; /* Enhanced internal padding tuning for screens */
             flex: 1;
             overflow-y: auto;
-            max-height: 85vh;
+        }
+        
+        @media (min-width: 768px) {
+            .tabcontent {
+                padding: 40px 55px;
+            }
         }
 
         .tabcontent h2 {
@@ -102,7 +126,15 @@
         .tabcontent h3 { color: var(--secondary-color); margin-top: 35px; font-size: 20px; }
         .tabcontent h4 { color: var(--primary-color); margin-top: 18px; font-size: 16px; }
 
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        /* Mobile responsive wrapper for heavy table components */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 20px 0;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
         table, th, td { border: 1px solid var(--border-color); }
         th, td { padding: 11px 13px; text-align: left; vertical-align: top; }
         th { background-color: var(--tab-bg); color: var(--primary-color); font-size: 13px; }
@@ -230,9 +262,6 @@
         <button class="tablinks"         onclick="openTab(event,'DQObservability')">12. Data Quality &amp; Observability</button>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 1 — THE COMPLETE DATA LIFECYCLE
-    ═══════════════════════════════════════════════════════════ -->
     <div id="Lifecycle" class="tabcontent" style="display:block;">
         <h2>The Complete Data Engineering Lifecycle</h2>
         <p>A Data Engineer must understand the <strong>end-to-end journey of data</strong> — from its birth in a source system to its eventual archival. Every stage introduces risk; missing or mishandling any stage contributes to what is known as a <em>Data Swamp</em>.</p>
@@ -326,9 +355,6 @@
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 2 — STORAGE & DB FOUNDATIONS
-    ═══════════════════════════════════════════════════════════ -->
     <div id="Storage" class="tabcontent">
         <h2>Storage &amp; Database Foundations</h2>
 
@@ -361,1609 +387,96 @@
         </div>
 
         <h3>2. Row-Oriented vs. Columnar Storage</h3>
-        <table>
-            <tr>
-                <th>Dimension</th>
-                <th>Row-Oriented (OLTP)</th>
-                <th>Columnar (OLAP)</th>
-            </tr>
-            <tr>
-                <td><strong>Physical layout</strong></td>
-                <td>All columns of one row are stored together on disk: <em>(id=1, name='Alice', age=30) → (id=2, name='Bob', age=25)</em></td>
-                <td>Each column stored together: <em>all IDs, then all names, then all ages</em></td>
-            </tr>
-            <tr>
-                <td><strong>Best for</strong></td>
-                <td>Reading or writing a single row quickly. INSERT / UPDATE / DELETE transactions.</td>
-                <td>Aggregating a single column across millions of rows: <code>SELECT SUM(revenue) …</code></td>
-            </tr>
-            <tr>
-                <td><strong>Compression</strong></td>
-                <td>Poor — each "chunk" is heterogeneous (mixed types), compresses badly.</td>
-                <td>Excellent — homogeneous column data (all integers, all dates) compresses 5–10×.</td>
-            </tr>
-            <tr>
-                <td><strong>I/O efficiency</strong></td>
-                <td>Must read every column even if only one is needed.</td>
-                <td>Only reads columns referenced in the query — "column pruning."</td>
-            </tr>
-            <tr>
-                <td><strong>Examples</strong></td>
-                <td>PostgreSQL, MySQL, Oracle, SQL Server</td>
-                <td>Snowflake, BigQuery, Redshift, Apache Parquet files</td>
-            </tr>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <tr>
+                    <th>Dimension</th>
+                    <th>Row-Oriented (OLTP)</th>
+                    <th>Columnar (OLAP)</th>
+                </tr>
+                <tr>
+                    <td><strong>Physical layout</strong></td>
+                    <td>All columns of one row are stored together on disk: <em>(id=1, name='Alice', age=30) → (id=2, name='Bob', age=25)</em></td>
+                    <td>Each column stored together: <em>all IDs, then all names, then all ages</em></td>
+                </tr>
+                <tr>
+                    <td><strong>Best for</strong></td>
+                    <td>Reading or writing a single row quickly. INSERT / UPDATE / DELETE transactions.</td>
+                    <td>Aggregating a single column across millions of rows: <code>SELECT SUM(revenue) …</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Compression</strong></td>
+                    <td>Poor — each "chunk" is heterogeneous (mixed types), compresses badly.</td>
+                    <td>Excellent — homogeneous column data (all integers, all dates) compresses 5–10×.</td>
+                </tr>
+                <tr>
+                    <td><strong>I/O efficiency</strong></td>
+                    <td>Must read every column even if only one is needed.</td>
+                    <td>Only reads columns referenced in the query — "column pruning."</td>
+                </tr>
+                <tr>
+                    <td><strong>Examples</strong></td>
+                    <td>PostgreSQL, MySQL, Oracle, SQL Server</td>
+                    <td>Snowflake, BigQuery, Redshift, Apache Parquet files</td>
+                </tr>
+            </table>
+        </div>
 
         <h3>3. OLTP vs. OLAP vs. HTAP</h3>
-        <table>
-            <tr>
-                <th>Feature</th>
-                <th>OLTP (Online Transaction Processing)</th>
-                <th>OLAP (Online Analytical Processing)</th>
-                <th>HTAP (Hybrid)</th>
-            </tr>
-            <tr>
-                <td><strong>Purpose</strong></td>
-                <td>Run the business (app backends, e-commerce)</td>
-                <td>Analyze the business (BI, dashboards, reporting)</td>
-                <td>Both simultaneously on one platform</td>
-            </tr>
-            <tr>
-                <td><strong>Query types</strong></td>
-                <td>Fast, simple INSERT / UPDATE / DELETE</td>
-                <td>Complex SELECT with massive aggregations &amp; JOINs</td>
-                <td>Mix of transactional and analytical</td>
-            </tr>
-            <tr>
-                <td><strong>Row count per query</strong></td>
-                <td>1–100 rows</td>
-                <td>Millions–billions of rows</td>
-                <td>Both extremes</td>
-            </tr>
-            <tr>
-                <td><strong>Concurrency</strong></td>
-                <td>Thousands of short concurrent transactions</td>
-                <td>Handful of long-running analytical queries</td>
-                <td>Manages both workloads</td>
-            </tr>
-            <tr>
-                <td><strong>Examples</strong></td>
-                <td>PostgreSQL, MySQL, Oracle</td>
-                <td>Snowflake, BigQuery, Redshift</td>
-                <td>SingleStore, TiDB, Snowflake Unistore</td>
-            </tr>
-        </table>
-
-        <h3>4. ACID Properties (Critical for OLTP)</h3>
-        <p>ACID guarantees that a database transaction — like a bank transfer — is processed reliably even under hardware failure or concurrent access:</p>
-        <ul>
-            <li><strong>Atomicity:</strong> "All or nothing." A transaction has 5 steps; if step 4 fails, all previous steps roll back automatically. No partial state is ever persisted.</li>
-            <li><strong>Consistency:</strong> A transaction must bring the database from one <em>valid</em> state to another. All constraints, rules, and cascades must pass — otherwise the entire transaction is rejected.</li>
-            <li><strong>Isolation:</strong> Concurrent transactions execute as if they were sequential. Multiple transactions at the same millisecond do not see each other's in-flight changes. Isolation levels (Read Uncommitted → Read Committed → Repeatable Read → Serializable) control the trade-off between concurrency and correctness.</li>
-            <li><strong>Durability:</strong> Once a transaction is committed, it survives system crashes. Achieved via Write-Ahead Logging (WAL): changes are written to a durable log before being applied to data files.</li>
-        </ul>
-
-        <h3>5. BASE Properties (Distributed / NoSQL Systems)</h3>
-        <p>Distributed NoSQL systems (Cassandra, DynamoDB, CouchDB) trade full ACID consistency for extreme scalability and availability using BASE semantics:</p>
-        <ul>
-            <li><strong>B</strong>asically <strong>A</strong>vailable: The system guarantees availability even if some nodes are unreachable. Reads and writes always get a response (possibly stale).</li>
-            <li><strong>S</strong>oft State: The system's state may change over time even without new writes, as eventual consistency propagation continues in the background.</li>
-            <li><strong>E</strong>ventually Consistent: Given enough time with no new writes, all replicas will converge to the same value. At any instant, replicas may disagree.</li>
-        </ul>
-        <div class="warning">
-            <strong>ACID vs. BASE trade-off:</strong> Use ACID (RDBMS) when correctness is non-negotiable (financial transactions, inventory). Use BASE (NoSQL) when scale and availability matter more than strict consistency (social media feeds, shopping carts).
+        <div class="table-responsive">
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>OLTP (Online Transaction Processing)</th>
+                    <th>OLAP (Online Analytical Processing)</th>
+                    <th>HTAP (Hybrid)</th>
+                </tr>
+                <tr>
+                    <td><strong>Purpose</strong></td>
+                    <td>Run the business (app backends, e-commerce)</td>
+                    <td>Analyze the business (BI, dashboards, reporting)</td>
+                    <td>Both simultaneously on one platform</td>
+                </tr>
+                <tr>
+                    <td><strong>Query types</strong></td>
+                    <td>Fast, simple INSERT / UPDATE / DELETE</td>
+                    <td>Complex SELECT with massive aggregations &amp; JOINs</td>
+                    <td>Mix of transactional and analytical</td>
+                </tr>
+                <tr>
+                    <td><strong>Row count per query</strong></td>
+                    <td>1–100 rows</td>
+                    <td>Millions–billions of rows</td>
+                    <td>Both extremes</td>
+                </tr>
+                <tr>
+                    <td><strong>Concurrency</strong></td>
+                    <td>Thousands of short concurrent transactions</td>
+                    <td>Handful of long-running analytical queries</td>
+                    <td>Manages both workloads</td>
+                </tr>
+                <tr>
+                    <td><strong>Examples</strong></td>
+                    <td>PostgreSQL, MySQL, Oracle</td>
+                    <td>Snowflake, BigQuery, Redshift</td>
+                    <td>SingleStore, TiDB, Snowflake Unistore</td>
+                </tr>
+            </table>
         </div>
-
-        <h3>6. The CAP Theorem</h3>
-        <p>In any distributed database system, you can guarantee <strong>at most 2 of these 3 properties</strong> simultaneously:</p>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>Consistency (C)</h4>
-                Every read returns the most recent write or an error. All nodes see identical data at the same instant.
-            </div>
-            <div class="concept-card">
-                <h4>Availability (A)</h4>
-                Every request receives a response (not an error), though the data returned may not be the most recent write.
-            </div>
-            <div class="concept-card">
-                <h4>Partition Tolerance (P)</h4>
-                The system continues to operate even when network messages between nodes are dropped (a "network partition").
-            </div>
-        </div>
-        <p><strong>Practical implication:</strong> Network partitions are unavoidable in real distributed systems, so P is non-negotiable. The real design choice is:</p>
-        <ul>
-            <li><strong>CP systems</strong> (Consistent + Partition Tolerant): Will refuse to respond rather than return stale data. Examples: HBase, Zookeeper, MongoDB (with majority read concern).</li>
-            <li><strong>AP systems</strong> (Available + Partition Tolerant): Will return a response even if it may be slightly stale. Examples: DynamoDB, Cassandra, CouchDB.</li>
-        </ul>
-
-        <h3>7. File Formats in the Data Lake</h3>
-        <table>
-            <tr>
-                <th>Format</th>
-                <th>Storage Model</th>
-                <th>Best For</th>
-                <th>Key Characteristics</th>
-            </tr>
-            <tr>
-                <td><strong>CSV</strong></td>
-                <td>Row-based, text</td>
-                <td>Simple exports, human-readable hand-offs</td>
-                <td>No embedded schema. No compression. Universally supported. Terrible for analytics at scale. No support for nested data.</td>
-            </tr>
-            <tr>
-                <td><strong>JSON / JSONL</strong></td>
-                <td>Row-based, text</td>
-                <td>API responses, semi-structured data</td>
-                <td>Flexible schema. No compression. Verbose. JSONL (one JSON object per line) is streaming-friendly and easy to append.</td>
-            </tr>
-            <tr>
-                <td><strong>Avro</strong></td>
-                <td>Row-based, binary</td>
-                <td>Event streaming, schema evolution</td>
-                <td>Schema embedded in every file. Built for Kafka. Excellent schema evolution (backward / forward compatible via Schema Registry). Compact binary encoding.</td>
-            </tr>
-            <tr>
-                <td><strong>Parquet</strong></td>
-                <td>Columnar, binary</td>
-                <td>Analytics at scale — the de facto standard</td>
-                <td>Industry standard for data lakes. Excellent compression (Snappy, Zstd). Supports predicate pushdown (skip irrelevant row groups without reading them). Supports nested structures. Best choice for OLAP workloads on S3.</td>
-            </tr>
-            <tr>
-                <td><strong>ORC</strong></td>
-                <td>Columnar, binary</td>
-                <td>Hive / Hadoop ecosystems</td>
-                <td>Similar to Parquet. Historically better performance in Hive. Less prevalent in modern Spark / Snowflake / Databricks stacks.</td>
-            </tr>
-            <tr>
-                <td><strong>Delta Lake</strong></td>
-                <td>Columnar + transaction log</td>
-                <td>Lakehouse — ACID on the data lake</td>
-                <td>Parquet files + a JSON transaction log. Adds ACID transactions, time travel, upserts (MERGE), schema enforcement, and schema evolution to raw data lake files. Created by Databricks. Open-sourced in 2019.</td>
-            </tr>
-            <tr>
-                <td><strong>Apache Iceberg</strong></td>
-                <td>Columnar + metadata layer</td>
-                <td>Multi-engine Lakehouse standard</td>
-                <td>Open table format specification (not a storage engine). Supports ACID, partition evolution (change partitioning without rewriting data), schema evolution, and time travel. Natively supported by Spark, Trino, Flink, Snowflake, and AWS Athena. The emerging cross-cloud open standard.</td>
-            </tr>
-        </table>
-
-        <h3>8. Partitioning &amp; Clustering</h3>
-        <p>Two critical performance techniques for large-scale tables:</p>
-        <ul>
-            <li><strong>Partitioning:</strong> Data is physically split into separate files or folders by a column value (e.g., <code>year=2024/month=06/day=08/</code>). A query filtered to a specific date only scans that date's partition — called <em>partition pruning</em>. Choose partition columns that appear in <code>WHERE</code> clauses.</li>
-            <li><strong>Clustering / Micro-partitioning (Snowflake):</strong> Within partitions, data is sorted by a secondary key so similar values are co-located. Enables Snowflake to skip irrelevant micro-partitions for range-based queries without a full scan.</li>
-        </ul>
-        <div class="note">
-            <strong>Small File Problem:</strong> Over-partitioning creates millions of tiny files, which is catastrophically slow for file-system-based engines (Spark, Hive). Use compaction / optimize jobs (Delta <code>OPTIMIZE</code>, Iceberg <code>rewrite_data_files</code>) to periodically merge small files back into large ones.
-        </div>
-
-        <h3>9. MPP Architecture (Massively Parallel Processing)</h3>
-        <p>Modern Data Warehouses (Snowflake, BigQuery, Redshift) use MPP to distribute a single query across hundreds of compute nodes simultaneously. A query like <code>SELECT SUM(revenue) FROM Fact_Sales</code> is split into parallel subtasks — each node scans a slice of data and returns a partial sum — then the coordinator merges the results. This is why columnar warehouses can scan billions of rows in seconds. Crucially, in Snowflake the compute (Virtual Warehouse) and storage (S3) are <em>decoupled</em> — you scale each independently.</p>
-
-        <h3>10. Storage Tiers (Cost vs. Performance)</h3>
-        <table>
-            <tr>
-                <th>Tier</th>
-                <th>Description</th>
-                <th>Latency</th>
-                <th>Cost</th>
-                <th>Example Use</th>
-            </tr>
-            <tr>
-                <td><strong>Hot</strong></td>
-                <td>Actively queried, frequently accessed data.</td>
-                <td>Milliseconds</td>
-                <td>High</td>
-                <td>Current-year Snowflake tables, Gold layer Data Products.</td>
-            </tr>
-            <tr>
-                <td><strong>Warm</strong></td>
-                <td>Infrequently queried — accessed once a week or month.</td>
-                <td>Seconds</td>
-                <td>Medium</td>
-                <td>S3 Standard-IA. Historical Silver layer (1–3 years old).</td>
-            </tr>
-            <tr>
-                <td><strong>Cold / Archive</strong></td>
-                <td>Rarely accessed — compliance, legal hold, or audit purposes only.</td>
-                <td>Minutes to hours</td>
-                <td>Very Low</td>
-                <td>S3 Glacier, Azure Archive. Bronze raw data older than 5 years.</td>
-            </tr>
-        </table>
     </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 3 — DATA MODELING
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Modeling" class="tabcontent">
-        <h2>Data Modeling: 3NF, Kimball, Snowflake Schema &amp; Beyond</h2>
-
-        <h3>1. 3rd Normal Form (3NF) — The Inmon Approach</h3>
-        <p>Normalization breaks data into many small tables to eliminate redundancy. The three normal forms build on each other:</p>
-        <ul>
-            <li><strong>1NF:</strong> Each column is atomic — no repeating groups, no multi-valued cells, no arrays in a single field.</li>
-            <li><strong>2NF:</strong> Every non-key attribute depends on the <em>entire</em> primary key (eliminates partial dependencies, relevant only when primary key is composite).</li>
-            <li><strong>3NF:</strong> Every non-key attribute depends <em>only</em> on the primary key — not on other non-key attributes (eliminates transitive dependencies).</li>
-        </ul>
-        <ul>
-            <li><strong>Pros:</strong> Zero data duplication. Single update point (update a State name in 1 row — propagates everywhere). Perfect data integrity.</li>
-            <li><strong>Cons:</strong> Terrible for analytics. "Total Sales by State" requires a 4-table JOIN — slow and complex for BI tools. Used in the Silver / ODS layer, not the Gold / reporting layer.</li>
-        </ul>
-
-        <h3>2. Dimensional Modeling — The Kimball Star Schema</h3>
-        <p>Ralph Kimball's approach: <em>denormalize</em> data to optimize for read-heavy analytical queries.</p>
-
-        <h4>Step 0: Define the Grain (The Most Critical Concept)</h4>
-        <p>The <strong>grain</strong> is the precise definition of what a single row in a Fact table represents. You <em>must</em> define the grain before choosing any columns.</p>
-        <ul>
-            <li><span class="tag tag-green">Good</span> "One row = one line item on one sales order, at one store, on one day."</li>
-            <li><span class="tag tag-red">Bad</span> "One row = something about a sale." — Ambiguous grain leads to double-counting aggregations.</li>
-        </ul>
-        <div class="note">
-            <strong>Grain Rule:</strong> Once the grain is defined, every Fact table column must either be a <em>measurement at that grain</em> or a <em>foreign key to a dimension at that grain</em>. Never mix grains in one Fact table.
-        </div>
-
-        <h4>Types of Fact Tables</h4>
-        <table>
-            <tr>
-                <th>Type</th>
-                <th>Grain</th>
-                <th>How rows are added</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Transaction Fact</strong></td>
-                <td>One row per discrete business event.</td>
-                <td>Appended as events occur. Can grow to billions of rows.</td>
-                <td>Each individual sales transaction, each web click, each invoice line item.</td>
-            </tr>
-            <tr>
-                <td><strong>Periodic Snapshot Fact</strong></td>
-                <td>One row per time period, capturing cumulative state at that point.</td>
-                <td>Rows inserted on a schedule (daily, monthly) — even if nothing changed.</td>
-                <td>Daily end-of-day inventory count. Monthly account balance snapshot.</td>
-            </tr>
-            <tr>
-                <td><strong>Accumulating Snapshot Fact</strong></td>
-                <td>One row per business process instance, tracking progress through milestones.</td>
-                <td>Row is <em>updated</em> as the process advances through stages. Rare for fact tables to be updated — this is a deliberate design.</td>
-                <td>One row per order: columns for Placed_Date, Shipped_Date, Delivered_Date, Returned_Date — each filled in as the milestone is reached.</td>
-            </tr>
-        </table>
-
-        <h4>Types of Measures (Facts)</h4>
-        <ul>
-            <li><strong>Additive:</strong> Can be summed meaningfully across <em>all</em> dimensions (time, geography, product). The most useful. Example: <code>Sales_Amount</code>, <code>Units_Sold</code>.</li>
-            <li><strong>Semi-Additive:</strong> Can be summed across some dimensions but <em>not across time</em>. Example: <code>Account_Balance</code> — summing daily balances for a month gives a meaningless number; you want the period-end balance. Use <code>MAX()</code> or snapshot logic instead of <code>SUM()</code> for the time dimension.</li>
-            <li><strong>Non-Additive:</strong> Cannot be summed at all. Must use <code>COUNT</code>, <code>AVG</code>, or derived ratios. Example: <code>Profit_Margin_Pct</code>, <code>Customer_Satisfaction_Score</code>, <code>Unit_Price</code>.</li>
-        </ul>
-
-        <h4>Special Dimension Types</h4>
-        <table>
-            <tr>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Conformed Dimension</strong></td>
-                <td>A dimension shared identically across multiple Fact tables. Enables "drill-across" queries — joining two unrelated Fact tables through their shared dimension.</td>
-                <td><code>Dim_Date</code> and <code>Dim_Customer</code> used by both <code>Fact_Sales</code> and <code>Fact_Returns</code>. Shared dimensions allow comparing Sales vs. Returns by Customer in a single query.</td>
-            </tr>
-            <tr>
-                <td><strong>Junk Dimension</strong></td>
-                <td>A single table holding multiple low-cardinality flags and indicators to reduce Fact table width. Contains all combinations of the flags.</td>
-                <td>Instead of 10 boolean columns in Fact_Sales (is_promotion, is_return, is_rush_order, is_online…), combine them into <code>Dim_Transaction_Flags</code> with one surrogate key.</td>
-            </tr>
-            <tr>
-                <td><strong>Degenerate Dimension</strong></td>
-                <td>A dimension attribute that lives directly in the Fact table — no corresponding Dimension table exists because there are no descriptive attributes worth a separate table.</td>
-                <td><code>Invoice_Number</code>, <code>Order_Number</code> in Fact_Sales. It's a dimension conceptually (you filter by it), but it holds no further descriptive data.</td>
-            </tr>
-            <tr>
-                <td><strong>Role-Playing Dimension</strong></td>
-                <td>A single physical dimension table used multiple times in one Fact table under different aliases.</td>
-                <td><code>Dim_Date</code> used three times in Fact_Orders: as <code>Order_Date_Key</code>, <code>Ship_Date_Key</code>, and <code>Delivery_Date_Key</code>. Each alias is a separate SQL view of the same physical table.</td>
-            </tr>
-            <tr>
-                <td><strong>Outrigger Dimension</strong></td>
-                <td>A secondary dimension that is attached to a primary dimension (not directly to the Fact table). Rare — used when a dimension attribute itself has its own dimension.</td>
-                <td><code>Dim_Customer</code> contains a <code>Salesperson_Key</code> that points to <code>Dim_Salesperson</code>. The Salesperson outriggers off Customer, not off the Fact.</td>
-            </tr>
-        </table>
-
-        <h4>Surrogate Keys vs. Natural Keys</h4>
-        <p>A <strong>Surrogate Key</strong> is a system-generated meaningless integer (<code>1, 2, 3…</code>) used as the primary key of Dimension tables, replacing the natural source-system key.</p>
-        <ul>
-            <li><strong>Why:</strong> Natural keys can change, be reused by source systems, or be inconsistent across systems. Surrogate keys are stable, compact (integer joins are faster than string joins), and enable SCD Type 2 (multiple rows per entity).</li>
-            <li><strong>Rule:</strong> Always join Fact tables to Dimensions via Surrogate Keys. Never expose surrogate keys to business users — they carry no business meaning.</li>
-        </ul>
-
-        <h3>3. The Snowflake Schema</h3>
-        <p>A normalized variant of the Star Schema where Dimension tables are further decomposed (e.g., <code>Dim_Customer</code> → <code>Dim_City</code> → <code>Dim_State</code> → <code>Dim_Country</code>). Saves disk space but adds JOIN complexity. Generally avoided in modern columnar warehouses where storage is cheap but query JOINs cost compute.</p>
-
-        <h3>4. One Big Table (OBT)</h3>
-        <p>A modern pattern used in some Data Lakehouses. All dimension attributes are pre-joined into a single wide flat table — eliminating JOINs entirely at query time.</p>
-        <ul>
-            <li><strong>Pros:</strong> Extremely fast for BI tools (zero joins). Simple enough for non-technical SQL writers.</li>
-            <li><strong>Cons:</strong> Massive data duplication. Updates are expensive. Only feasible with columnar compression (Parquet / Snowflake). Cannot represent complex many-to-many relationships cleanly.</li>
-            <li><strong>Best for:</strong> Self-service analytics platforms, embedded analytics, and scenarios where read latency is the only priority.</li>
-        </ul>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 4 — SCD TYPES
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="SCD" class="tabcontent">
-        <h2>Deep Dive: Slowly Changing Dimensions (SCDs)</h2>
-        <p>When a descriptive attribute in a Dimension changes over time (a customer moves cities, an employee changes job titles, a product changes categories), you must decide how the data warehouse handles that change. The SCD framework provides standardized strategies for each scenario.</p>
-
-        <div class="danger">
-            <strong>Why this matters critically:</strong> If you use SCD Type 1 (overwrite) for a Sales Territory dimension, all historical sales will be re-attributed to the <em>current</em> territory — not the territory at the time of the sale. This silently corrupts historical analysis without any error messages.
-        </div>
-
-        <h3>The Surrogate Key Foundation</h3>
-        <p>All SCD implementations depend on <strong>Surrogate Keys</strong> — system-generated integer IDs independent of the business key. This allows multiple rows to coexist for the same entity (as in Type 2) without natural key conflicts.</p>
-
-        <table>
-            <tr>
-                <th>Type</th>
-                <th>Strategy</th>
-                <th>When to Use</th>
-                <th>Example Result</th>
-                <th>Key Tradeoffs</th>
-            </tr>
-            <tr>
-                <td><strong>Type 0<br>Retain Original</strong></td>
-                <td>Ignore all changes. The first value loaded is permanent.</td>
-                <td>Immutable facts: Date of Birth, Original Sign-Up Date, Contract Start Date.</td>
-                <td>John registered from NY in 2018. Even after moving to CA, the record still shows NY.</td>
-                <td>✅ Simplest possible. ❌ Wrong if the attribute should reflect the current state.</td>
-            </tr>
-            <tr>
-                <td><strong>Type 1<br>Overwrite</strong></td>
-                <td>Update the existing row in-place. Old value is permanently deleted.</td>
-                <td>Correcting data quality errors. Fields where history is irrelevant: Phone Number, Email, Typo corrections.</td>
-                <td>Row: City updated from NY → CA. NY is gone forever from the DWH.</td>
-                <td>✅ Simple, small table. ❌ Zero historical tracking. Point-in-time analysis is impossible.</td>
-            </tr>
-            <tr>
-                <td><strong>Type 2<br>Add New Row ⭐</strong></td>
-                <td>Expire the current row (set Effective_End_Date, Is_Current = 0). Insert a brand-new row with the new value. Both rows share the same Natural Key but have different Surrogate Keys.</td>
-                <td>Any time you need full historical tracking for point-in-time reporting. Sales Territory, Employee Department, Customer Segment, Product Category.</td>
-                <td>Row 1: John | NY | Start=2020-01-01 | End=2025-06-01 | Is_Current=0<br>Row 2: John | CA | Start=2025-06-01 | End=NULL | Is_Current=1</td>
-                <td>✅ Complete history preserved. Full point-in-time analysis enabled. ❌ Table grows with every change. Queries must filter on Is_Current or date range.</td>
-            </tr>
-            <tr>
-                <td><strong>Type 3<br>Add New Column</strong></td>
-                <td>Add a <code>Previous_Value</code> column to the existing row. Only one level of history is stored.</td>
-                <td>When you only need the immediately preceding value: before/after org restructuring, recent address change.</td>
-                <td>John | Current_City=CA | Previous_City=NY. (TX, the city before NY, is lost.)</td>
-                <td>✅ Single row per entity — simple table. ❌ Loses any history beyond one change back.</td>
-            </tr>
-            <tr>
-                <td><strong>Type 4<br>History Table</strong></td>
-                <td>Maintain a Type 1 (always-current) main dimension. Route all changes to a separate <code>Dim_X_History</code> table that stores every version.</td>
-                <td>Rapidly changing dimensions where the main table must stay lean and fast, but full history must be retained.</td>
-                <td>Main: John | CA (always current). History: (John|NY|2018), (John|TX|2021), (John|CA|2025).</td>
-                <td>✅ Fast current lookups. Full history available. ❌ Requires JOINs to history table for any retrospective analysis.</td>
-            </tr>
-            <tr>
-                <td><strong>Type 6<br>Hybrid (1+2+3) ⭐</strong></td>
-                <td>Combines all three types. Uses Type 2 new-row insert (full history), Type 1 "current value" column that is updated across ALL rows for the entity, and Type 3 "previous value" column on each row.</td>
-                <td>When you need full historical accuracy AND easy access to the current value without additional joins on every query.</td>
-                <td>Row 1: John | City_At_Time=NY | Current_City=CA | Prior_City=NY | Is_Current=0<br>Row 2: John | City_At_Time=CA | Current_City=CA | Prior_City=NY | Is_Current=1</td>
-                <td>✅ Maximum flexibility. Historical rows carry the current value, enabling "current state + history" in one query. ❌ Most complex to implement and maintain. Requires updating Current_City on all prior rows on every change.</td>
-            </tr>
-        </table>
-
-        <h3>Standard SCD Type 2 Column Pattern</h3>
-        <ul>
-            <li><code>Surrogate_Key</code> — Integer primary key. Auto-increments per row, not per entity.</li>
-            <li><code>Natural_Key</code> — The original business identifier (e.g., Customer_ID from the source system).</li>
-            <li><code>Effective_Start_Date</code> — When this version became active.</li>
-            <li><code>Effective_End_Date</code> — When this version expired. NULL = still current.</li>
-            <li><code>Is_Current_Flag</code> — Boolean. 1 = active record. Used for fast "current state" queries without date math.</li>
-            <li><code>Record_Source</code> — Which source system provided this version.</li>
-            <li><code>Hash_Diff</code> — A hash of all attribute columns. Used to detect changes efficiently without column-by-column comparison on large dimension tables.</li>
-        </ul>
-
-        <h3>Point-in-Time Query Pattern (Type 2)</h3>
-        <p>To find which region a customer belonged to on a specific historical date:</p>
-        <pre><code>SELECT *
-FROM   Dim_Customer
-WHERE  Natural_Key           = 'CUST_123'
-  AND  Effective_Start_Date &lt;= '2023-06-15'
-  AND  (Effective_End_Date   &gt;  '2023-06-15'
-        OR Effective_End_Date IS NULL);</code></pre>
-
-        <h3>dbt Snapshots — Type 2 Automation</h3>
-        <p>In dbt, SCD Type 2 is implemented via the <code>dbt snapshot</code> feature. You define a snapshot in a <code>snapshots/</code> directory with:</p>
-        <ul>
-            <li><strong><code>strategy: timestamp</code></strong> — Uses an <code>updated_at</code> column to detect changes (efficient).</li>
-            <li><strong><code>strategy: check</code></strong> — Compares specified columns row-by-row (works when no updated_at exists, but slower).</li>
-        </ul>
-        <p>dbt automatically manages <code>dbt_scd_id</code>, <code>dbt_valid_from</code>, <code>dbt_valid_to</code>, and <code>dbt_updated_at</code> columns on every snapshot run.</p>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 5 — MEDALLION ARCHITECTURE
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Medallion" class="tabcontent">
-        <h2>The Medallion Architecture (Bronze → Silver → Gold)</h2>
-        <p>The Medallion architecture (popularized by Databricks) is a multi-hop data pipeline pattern that guarantees data becomes progressively cleaner, more structured, and more valuable as it moves "right" through the layers. It is the standard organizing principle for Data Lakehouses.</p>
-
-        <h3>Schema on Read vs. Schema on Write</h3>
-        <table>
-            <tr>
-                <th>Concept</th>
-                <th>Schema on Write (Data Warehouse)</th>
-                <th>Schema on Read (Data Lake)</th>
-            </tr>
-            <tr>
-                <td><strong>When is schema enforced</strong></td>
-                <td>At write time — data is rejected if it doesn't match the defined schema.</td>
-                <td>At read / query time — raw data is stored as-is; the reader applies the schema.</td>
-            </tr>
-            <tr>
-                <td><strong>Data quality guarantee</strong></td>
-                <td>Strong — only conforming data can land.</td>
-                <td>None — inconsistent data can silently fail at query time.</td>
-            </tr>
-            <tr>
-                <td><strong>Flexibility</strong></td>
-                <td>Lower — schema changes require migration scripts.</td>
-                <td>Higher — any shape of data can be stored immediately.</td>
-            </tr>
-            <tr>
-                <td><strong>Where used in Medallion</strong></td>
-                <td>Silver and Gold layers (enforced schema).</td>
-                <td>Bronze layer (raw landing, any format accepted).</td>
-            </tr>
-        </table>
-
-        <h3>🥉 Bronze Layer — Raw / Landing</h3>
-        <p><strong>Goal: Ingest safely. Preserve everything. Never transform.</strong></p>
-        <ul>
-            <li>Data lands exactly as it arrives from source — no column renaming, no type casting, no filtering.</li>
-            <li>If any downstream pipeline fails, Bronze is the replay point. It is your immutable audit trail.</li>
-            <li>Standard metadata columns are appended at load time: <code>_ingestion_timestamp</code>, <code>_source_system</code>, <code>_file_name</code>, <code>_batch_id</code>.</li>
-            <li>Stored as Parquet / Delta / Iceberg files in S3 / ADLS / GCS.</li>
-            <li>Schema on read applies here — accept any shape from the source.</li>
-            <li><em>Enterprise naming:</em> STG (Staging), RAW, or Landing Zone.</li>
-        </ul>
-        <div class="warning">
-            <strong>Bronze Rule:</strong> Never delete Bronze data. It is the time machine that enables full pipeline reruns and incident investigation.
-        </div>
-
-        <h3>🥈 Silver Layer — Cleaned / Conformed / Validated</h3>
-        <p><strong>Goal: Establish the Enterprise Source of Truth for the current state of business entities.</strong></p>
-        <ul>
-            <li><strong>Deduplication:</strong> Remove exact duplicates; resolve soft duplicates via business key logic.</li>
-            <li><strong>Type enforcement:</strong> Cast strings to dates, decimals, booleans. Reject or quarantine non-conforming rows.</li>
-            <li><strong>Standardization:</strong> Convert timezones to UTC, normalize currency codes, apply code-table mappings (status codes → human labels).</li>
-            <li><strong>Null handling:</strong> Coalesce nulls where appropriate; flag rows where mandatory fields are missing.</li>
-            <li>Data organized around business entities: Customers, Orders, Products, Invoices, Employees.</li>
-            <li>Schema on write enforced here — schema contracts applied.</li>
-            <li>Represents the "current state" of each entity; history may be partially tracked.</li>
-            <li><em>Enterprise naming:</em> ODS (Operational Data Store) or CDM (Common Data Model).</li>
-        </ul>
-
-        <h3>🥇 Gold Layer — Curated / Business-Ready</h3>
-        <p><strong>Goal: Answer specific business questions fast, at the level of abstraction business users think in.</strong></p>
-        <ul>
-            <li>Data structured into Star Schemas (Fact + Dimension tables) or One Big Tables for BI tools.</li>
-            <li>Full historical tracking via SCD Type 2 on Dimension tables.</li>
-            <li>Pre-aggregated summary tables for common metrics (daily/monthly/YTD totals).</li>
-            <li>ML feature stores and versioned training datasets.</li>
-            <li>Formal Data Products with SLAs, ownership, and catalog registration.</li>
-            <li><em>Enterprise naming:</em> Core DW, Aggregates, CURATED layer, Data Products.</li>
-        </ul>
-
-        <h3>Delta Lake &amp; Apache Iceberg — ACID on the Data Lake</h3>
-        <p>These open table formats add Data Warehouse-grade capabilities to raw files in object storage:</p>
-        <table>
-            <tr>
-                <th>Feature</th>
-                <th>Delta Lake</th>
-                <th>Apache Iceberg</th>
-            </tr>
-            <tr>
-                <td><strong>ACID Transactions</strong></td>
-                <td>✅ Via JSON transaction log (_delta_log)</td>
-                <td>✅ Via snapshot-based metadata tree</td>
-            </tr>
-            <tr>
-                <td><strong>Time Travel</strong></td>
-                <td>✅ <code>SELECT … VERSION AS OF 10</code> or <code>TIMESTAMP AS OF '2024-01-01'</code></td>
-                <td>✅ Query by snapshot ID or timestamp</td>
-            </tr>
-            <tr>
-                <td><strong>Schema Evolution</strong></td>
-                <td>✅ Add / rename / drop columns without rewriting data</td>
-                <td>✅ Full schema evolution with backward compatibility options</td>
-            </tr>
-            <tr>
-                <td><strong>Partition Evolution</strong></td>
-                <td>❌ Limited — changing partition strategy requires a rewrite</td>
-                <td>✅ Change partitioning strategy on existing data without rewriting files</td>
-            </tr>
-            <tr>
-                <td><strong>Upserts (MERGE / UPSERT)</strong></td>
-                <td>✅ Full MERGE INTO support</td>
-                <td>✅ Full MERGE support</td>
-            </tr>
-            <tr>
-                <td><strong>Multi-engine support</strong></td>
-                <td>Databricks native; Spark, Trino, Athena, Flink</td>
-                <td>Open standard — Spark, Flink, Trino, Snowflake, Athena, BigQuery (Omni)</td>
-            </tr>
-            <tr>
-                <td><strong>Compaction</strong></td>
-                <td><code>OPTIMIZE</code> command merges small files</td>
-                <td><code>rewrite_data_files</code> procedure</td>
-            </tr>
-        </table>
-
-        <h3>Streaming in the Medallion Architecture</h3>
-        <ul>
-            <li><strong>Bronze (Streaming Landing):</strong> Kafka / Kinesis events write directly to Bronze as raw messages — append-only, millisecond latency. Often stored as JSONL or Avro for schema evolution.</li>
-            <li><strong>Silver (Stateful Deduplication):</strong> Streaming deduplication using <em>watermarks</em> — the engine waits up to N hours for late-arriving events before closing a time window. State is maintained in a persistent state store (RocksDB in Flink / Spark).</li>
-            <li><strong>Gold (Micro-batch Aggregation):</strong> Gold-level aggregations (hourly KPIs, rolling 7-day metrics) typically run as micro-batch (every 5–15 minutes) — balancing business latency requirements against compute cost.</li>
-        </ul>
-        <div class="note">
-            <strong>Event Time vs. Processing Time:</strong> Always use <em>event time</em> (when the event happened in the source system) for windowed aggregations, never <em>processing time</em> (when your pipeline received it). A 5-minute network delay should not misattribute a purchase to the wrong time window.
-        </div>
-
-        <h3>Multi-Hop Patterns</h3>
-        <p>The three layer names are <em>logical</em>. In practice, pipelines can have multiple hops within a layer:</p>
-        <pre><code>Bronze_Raw → Bronze_Validated → Silver_Integrated → Silver_Enriched → Gold_Dimensional → Gold_Aggregated</code></pre>
-        <p>Each hop is a separate dbt model or Spark job with its own tests and lineage. The key principle: each hop adds exactly one type of transformation — never mix cleaning + enriching + modeling in a single step.</p>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 6 — DATA VAULT 2.0
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="DataVault" class="tabcontent">
-        <h2>Data Vault 2.0 — Deep Dive</h2>
-        <p>Data Vault 2.0 (DV2) is an advanced Silver-layer modeling methodology designed for large enterprises with many source systems, frequent schema changes, and strict audit / compliance requirements. It is fully <strong>insert-only</strong>, <strong>parallelizable</strong>, and designed to be rebuilt from scratch if needed.</p>
-
-        <div class="warning">
-            <strong>When NOT to use Data Vault:</strong> Small teams, 1–2 source systems, projects needing fast time-to-insight. DV2's upfront modeling overhead pays off only when you have 5+ source systems feeding the same business entities, and schema changes arrive frequently.
-        </div>
-
-        <h3>Why Data Vault Over 3NF or Kimball?</h3>
-        <ul>
-            <li><strong>Agility:</strong> Adding a new source system = adding new Satellites or Links. Core Hub definitions never change. In 3NF, a schema change in one source can cascade into breaking changes across many joined tables.</li>
-            <li><strong>Auditability:</strong> Every single row in every table carries a <code>Load_Date</code> and <code>Record_Source</code>. Full provenance of every data point is maintained.</li>
-            <li><strong>Parallel Loading:</strong> Hubs, Links, and Satellites have no foreign key dependencies on each other at load time, so all three component types can be loaded simultaneously from the same source batch.</li>
-            <li><strong>No Updates:</strong> Insert-only design means no locking contention. Historical data is never overwritten — only new rows are added.</li>
-        </ul>
-
-        <h3>The 6 Data Vault Components</h3>
-        <table>
-            <tr>
-                <th>Component</th>
-                <th>Contains</th>
-                <th>Key Rule</th>
-                <th>Columns Example</th>
-            </tr>
-            <tr>
-                <td><strong>Hub</strong></td>
-                <td>The unique business key for a core enterprise entity. Nothing else — no descriptions, no attributes.</td>
-                <td>One row per unique business key. Immutable — never updated, never deleted. The "spine" of the vault.</td>
-                <td><code>HUB_CUSTOMER</code>: Hash_Key, Customer_ID, Load_Date, Record_Source</td>
-            </tr>
-            <tr>
-                <td><strong>Link</strong></td>
-                <td>The relationship between two or more Hubs. Contains only their Hash Keys — no attributes.</td>
-                <td>Insert-only. Relationships are facts. If a business relationship changes, a new Link is added — not updated.</td>
-                <td><code>LNK_ORDER_PRODUCT</code>: Hash_Key, Order_HK, Product_HK, Load_Date, Record_Source</td>
-            </tr>
-            <tr>
-                <td><strong>Satellite</strong></td>
-                <td>Descriptive attributes for a Hub or Link — everything that changes over time (names, addresses, status, amounts).</td>
-                <td>Strictly insert-only. Every attribute change creates a new row with a new Load_Date. Provides an unalterable, audit-grade change history.</td>
-                <td><code>SAT_CUSTOMER_DETAILS</code>: Customer_HK, Load_Date, Load_End_Date, First_Name, City, Email, Hash_Diff, Record_Source</td>
-            </tr>
-            <tr>
-                <td><strong>Reference Table (REF)</strong></td>
-                <td>Shared enterprise lookup / code tables. Not owned by any single Hub.</td>
-                <td>Shared across the entire vault. Versioned like Satellites when codes change.</td>
-                <td><code>REF_CURRENCY</code>: Currency_Code, Currency_Name, Symbol, Load_Date</td>
-            </tr>
-            <tr>
-                <td><strong>Point-in-Time (PIT)</strong></td>
-                <td>A performance optimization table — a pre-computed snapshot of Satellite Load_Dates for each business key at each calendar date.</td>
-                <td>Eliminates complex MAX(Load_Date) subqueries on Satellites at query time. Rebuilt periodically or incrementally.</td>
-                <td>Customer_HK | Snapshot_Date | SAT_DETAILS_Load_Date | SAT_ADDRESS_Load_Date | SAT_FINANCIALS_Load_Date</td>
-            </tr>
-            <tr>
-                <td><strong>Bridge Table</strong></td>
-                <td>A pre-joined, flattened view of multiple related Links for reporting performance.</td>
-                <td>Built for specific reporting use cases. Rebuilt when Links change. Avoids runtime multi-hop join chains.</td>
-                <td>Flattens Customer → Orders → Products → Invoices into one denormalized key structure for Gold layer consumption.</td>
-            </tr>
-        </table>
-
-        <h3>Mandatory Metadata Columns (DV2 Standards)</h3>
-        <p>Every single Data Vault table — Hub, Link, and Satellite — must carry these four columns:</p>
-        <ul>
-            <li><code>HASH_KEY</code>: A deterministic hash (MD5 or SHA-256) of the business key. Used as the primary key. Ensures consistent joins across any source system. <em>Must be computed identically across all loading processes.</em></li>
-            <li><code>LOAD_DATE (LDTS)</code>: The exact timestamp when this record was loaded into the vault by the ETL process. <strong>Never</strong> the source system's own timestamp (that goes in a Satellite). This enables replaying the vault from any point in time.</li>
-            <li><code>RECORD_SOURCE (RSRC)</code>: The source system that provided this record (e.g., <code>'SALESFORCE.ACCOUNT'</code>, <code>'SAP.VBAP'</code>). Critical for root-cause debugging.</li>
-            <li><code>HASH_DIFF</code> <em>(Satellites only)</em>: A hash of all attribute column values concatenated. Compared to the last loaded row to detect changes — far faster than column-by-column comparison on wide Satellites.</li>
-        </ul>
-
-        <h3>Raw Vault vs. Business Vault</h3>
-        <table>
-            <tr>
-                <th>Dimension</th>
-                <th>Raw Vault</th>
-                <th>Business Vault</th>
-            </tr>
-            <tr>
-                <td><strong>Contains</strong></td>
-                <td>Source data loaded as-is. No business rules applied. Pure capture of every source record.</td>
-                <td>Derived or calculated data applying business logic. Soft rules only.</td>
-            </tr>
-            <tr>
-                <td><strong>Rules applied</strong></td>
-                <td>Hard rules only: structural normalization (type casting, business key extraction, hash computation).</td>
-                <td>Soft rules: "Active Customer" definition, currency conversion, revenue classification, derived metrics.</td>
-            </tr>
-            <tr>
-                <td><strong>Changes when</strong></td>
-                <td>Only when the source system's structure changes. The raw vault is as stable as the source.</td>
-                <td>When business definitions or rules change. Can be fully rebuilt from Raw Vault data without re-ingesting from source.</td>
-            </tr>
-            <tr>
-                <td><strong>Purpose</strong></td>
-                <td>Compliance, audit, regulatory proof, full history.</td>
-                <td>Performance optimization and business-friendly querying for Gold layer consumers.</td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 7 — INGESTION PATTERNS & CDC
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Ingestion" class="tabcontent">
-        <h2>Ingestion Patterns &amp; CDC</h2>
-        <p>Ingestion is the first critical step: moving data from source systems into the data platform. The pattern chosen determines cost, latency, complexity, data completeness, and downstream correctness.</p>
-
-        <h3>1. The Four Core Ingestion Patterns</h3>
-        <table>
-            <tr>
-                <th>Pattern</th>
-                <th>Description</th>
-                <th>Latency</th>
-                <th>Best For</th>
-                <th>Tools</th>
-            </tr>
-            <tr>
-                <td><strong>Full Extract (Batch)</strong></td>
-                <td>Entire source table extracted on every run. Simple but inefficient — reads data that hasn't changed.</td>
-                <td>Hours (usually nightly)</td>
-                <td>Small, stable reference tables. Simple first-pass pipelines.</td>
-                <td>SQL CTAS, Fivetran full sync, nightly CSV export</td>
-            </tr>
-            <tr>
-                <td><strong>Incremental Batch</strong></td>
-                <td>Extract only rows modified since the last run, using a high-watermark column (<code>updated_at &gt; last_run_time</code>) or sequence number.</td>
-                <td>Minutes to hours</td>
-                <td>Large OLTP tables where full extract is cost-prohibitive.</td>
-                <td>dbt incremental models, Airbyte, Fivetran incremental</td>
-            </tr>
-            <tr>
-                <td><strong>Streaming</strong></td>
-                <td>Events are published to a distributed message broker as they occur and consumed in real-time. True event-driven architecture.</td>
-                <td>Milliseconds to seconds</td>
-                <td>Clickstreams, IoT telemetry, fraud detection, live operational dashboards.</td>
-                <td>Apache Kafka, AWS Kinesis, Google Pub/Sub, Azure Event Hubs</td>
-            </tr>
-            <tr>
-                <td><strong>Micro-batch</strong></td>
-                <td>Batch processing in small, frequent time windows (every 1–15 minutes). Simulates streaming with simpler batch-oriented semantics.</td>
-                <td>1–15 minutes</td>
-                <td>Near-real-time use cases without the full operational complexity of pure streaming.</td>
-                <td>Spark Structured Streaming, AWS Glue with triggers, Databricks Auto Loader</td>
-            </tr>
-        </table>
-
-        <h3>2. CDC (Change Data Capture) — Deep Dive</h3>
-        <p>CDC captures only the rows that <em>changed</em> (INSERTs, UPDATEs, DELETEs) in a source system since the last extraction. It is the gold standard for incremental ingestion because it captures all operation types including hard deletes — something watermark-based incremental batch cannot do.</p>
-
-        <h4>CDC Approaches Compared</h4>
-        <table>
-            <tr>
-                <th>Approach</th>
-                <th>How It Works</th>
-                <th>Pros</th>
-                <th>Cons</th>
-            </tr>
-            <tr>
-                <td><strong>Log-Based CDC ⭐</strong></td>
-                <td>Reads the database's transaction log directly (PostgreSQL WAL, MySQL binlog, SQL Server CDC, Oracle Redo Log). Captures all operations without running any queries on the source DB.</td>
-                <td>Zero load on source DB. Captures DELETEs. Sub-second latency possible. Exact replication of every change.</td>
-                <td>Requires privileged DB access (replication role). Log format varies by vendor. Must monitor log retention to avoid gaps.</td>
-            </tr>
-            <tr>
-                <td><strong>Query-Based CDC</strong></td>
-                <td>Polls the source DB with a query filtered by a timestamp or sequence column: <code>WHERE updated_at &gt; :last_watermark</code>.</td>
-                <td>Simple to implement. Works on any database with no special permissions.</td>
-                <td>Adds query load to source DB (can impact application performance). Cannot capture DELETEs. Fails silently if rows lack an <code>updated_at</code> column or it isn't indexed.</td>
-            </tr>
-            <tr>
-                <td><strong>Trigger-Based CDC</strong></td>
-                <td>Database triggers fire on INSERT / UPDATE / DELETE and write changes to a shadow / audit table.</td>
-                <td>Captures all operation types including DELETEs. No external tooling.</td>
-                <td>Doubles write load on the source DB. Triggers are fragile and hard to maintain at scale. Risk of impacting source application performance.</td>
-            </tr>
-        </table>
-        <p><strong>Popular CDC Tools:</strong> <a href="https://debezium.io/" target="_blank">Debezium</a> (open-source, log-based), AWS Database Migration Service (DMS), Fivetran, Airbyte, Striim, Confluent Platform.</p>
-
-        <h3>3. Pull vs. Push Ingestion</h3>
-        <table>
-            <tr>
-                <th>Model</th>
-                <th>Description</th>
-                <th>Example</th>
-                <th>Consideration</th>
-            </tr>
-            <tr>
-                <td><strong>Pull (Scheduled / Polled)</strong></td>
-                <td>The data platform initiates the extract from the source on a schedule.</td>
-                <td>Airflow DAG runs at midnight and queries the source OLTP DB.</td>
-                <td>Simple to control. Depends on source system availability at the scheduled time.</td>
-            </tr>
-            <tr>
-                <td><strong>Push (Event-Driven)</strong></td>
-                <td>The source system sends data to the platform when events occur — no polling needed.</td>
-                <td>A webhook fires when a new order is placed; data lands in Kinesis within milliseconds.</td>
-                <td>Lower latency. Source system must be capable of publishing events. Requires a message broker or API endpoint.</td>
-            </tr>
-        </table>
-
-        <h3>4. Idempotency — Non-Negotiable for Reliable Pipelines</h3>
-        <p><strong>Idempotency</strong> means: running the same pipeline with the same inputs multiple times always produces the same result — no duplicate rows, no data loss.</p>
-        <div class="danger">
-            <strong>Why it matters:</strong> Pipelines fail and must be retried. A non-idempotent pipeline will duplicate data every time it is retried. A pipeline that has run 5 times should look identical to one that ran once.
-        </div>
-        <ul>
-            <li>Use MERGE / UPSERT instead of raw INSERT when loading into structured tables.</li>
-            <li>Use a deduplication step (GROUP BY business key) at the Bronze → Silver boundary.</li>
-            <li>Track watermarks in a persistent control table, not in pipeline memory (which is lost on restart).</li>
-            <li>Design each pipeline step to be a <em>pure function</em>: same input → same output, regardless of how many times it runs.</li>
-        </ul>
-
-        <h3>5. Late-Arriving Data &amp; Watermarks (Streaming)</h3>
-        <p>In streaming systems, events do not always arrive in order. A transaction that occurred at 11:58 PM may not reach your Kafka consumer until 12:04 AM the next day due to network delays.</p>
-        <ul>
-            <li><strong>Watermark:</strong> A threshold telling the streaming engine how long to wait for late events before closing (finalizing) a time window. Example: "Close the 11:00–12:00 PM window at 2:00 PM — wait 2 hours for late arrivals."</li>
-            <li><strong>Event Time vs. Processing Time:</strong> Always aggregate on <em>event time</em> (when the event occurred in the source) rather than <em>processing time</em> (when your consumer received it). Network jitter should not misattribute a purchase to the wrong day's metrics.</li>
-            <li><strong>Allowed Lateness:</strong> After the watermark passes, some engines (Apache Flink) can still accept "allowed late" events and emit result corrections for a configurable period.</li>
-        </ul>
-
-        <h3>6. Ingestion Considerations by Source Type</h3>
-        <table>
-            <tr>
-                <th>Source Type</th>
-                <th>Key Engineering Considerations</th>
-            </tr>
-            <tr>
-                <td><strong>REST API</strong></td>
-                <td>Handle pagination (cursor-based preferred over offset-based for large datasets). Respect rate limits — implement exponential backoff on 429 / 503 responses. Always store the raw API response in Bronze before parsing — API schemas change without warning.</td>
-            </tr>
-            <tr>
-                <td><strong>File Drop (S3 / SFTP)</strong></td>
-                <td>Handle encoding issues (UTF-8 vs Latin-1). Varying delimiters and extra header rows. Move processed files to an "archived/" prefix, never delete them. Validate file completeness with row counts or checksums if provided by the sender.</td>
-            </tr>
-            <tr>
-                <td><strong>Database (JDBC)</strong></td>
-                <td>Use read replicas to avoid impacting the production OLTP system. Set query timeouts. Use JDBC partitioning (partition by a numeric column) for parallel extraction of large tables.</td>
-            </tr>
-            <tr>
-                <td><strong>Kafka / Event Stream</strong></td>
-                <td>Choose the right delivery semantic: at-most-once (fast, may lose), at-least-once (may duplicate — handle with dedup), exactly-once (slowest, guaranteed). Use a Schema Registry (Confluent / AWS Glue) to manage Avro / Protobuf schema evolution across producers and consumers.</td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 8 — ORCHESTRATION & DATAOPS
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Orchestration" class="tabcontent">
-        <h2>Orchestration &amp; DataOps</h2>
-        <p>Orchestration coordinates pipeline execution: what runs, in what order, when, and what happens on failure. Without orchestration, pipelines are isolated scripts with no visibility, no retry logic, and no guarantees.</p>
-
-        <h3>1. Core Orchestration Concepts</h3>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>DAG (Directed Acyclic Graph)</h4>
-                The pipeline blueprint. A collection of tasks linked by dependencies. "Directed" means tasks have order. "Acyclic" means no circular dependencies — Task A cannot wait on Task B if B waits on A.
-            </div>
-            <div class="concept-card">
-                <h4>Task</h4>
-                The smallest unit of work — a Python function, SQL statement, bash command, or API call. Each task has its own status: queued, running, success, failed, skipped.
-            </div>
-            <div class="concept-card">
-                <h4>Dependency</h4>
-                A task only starts after all upstream tasks succeed. In Airflow: <code>extract &gt;&gt; transform &gt;&gt; load</code>. Forms the execution order graph.
-            </div>
-            <div class="concept-card">
-                <h4>Schedule</h4>
-                A cron expression or event trigger controlling when a DAG runs. Example: <code>0 6 * * *</code> = 6:00 AM every day. Can also be triggered by events (file arrival, API call).
-            </div>
-            <div class="concept-card">
-                <h4>Sensor</h4>
-                A special task that <em>waits</em> for an external condition before proceeding: wait for a file in S3, wait for a Snowflake table to update, wait for a Kafka topic to have new messages. Far better than <code>sleep()</code> calls.
-            </div>
-            <div class="concept-card">
-                <h4>Backfill</h4>
-                Re-running a DAG for historical dates to populate missing or incorrect data. Requires pipelines to be idempotent. Critical for incident recovery and retroactive data corrections.
-            </div>
-            <div class="concept-card">
-                <h4>SLA (in Airflow)</h4>
-                A time threshold by which a task or DAG must complete. If missed, Airflow can send email/Slack alerts. Different from a Data Product SLA — this is pipeline-level timing.
-            </div>
-            <div class="concept-card">
-                <h4>Retry with Backoff</h4>
-                Automatically retry failed tasks with increasing delay between attempts (e.g., 1 min → 2 min → 4 min). Handles transient failures (network timeouts, API rate limits) without human intervention.
-            </div>
-        </div>
-
-        <h3>2. Apache Airflow Architecture</h3>
-        <table>
-            <tr>
-                <th>Component</th>
-                <th>Role</th>
-            </tr>
-            <tr>
-                <td><strong>Scheduler</strong></td>
-                <td>The brain. Continuously monitors DAG files, determines which tasks are ready to run based on dependencies and schedule, and submits them to the Executor.</td>
-            </tr>
-            <tr>
-                <td><strong>Executor</strong></td>
-                <td>Controls <em>how</em> tasks actually run. LocalExecutor (single machine, parallel threads), CeleryExecutor (distributed workers via a message broker), KubernetesExecutor (each task gets its own isolated Pod — best for diverse Python environments).</td>
-            </tr>
-            <tr>
-                <td><strong>Webserver</strong></td>
-                <td>The UI: view DAG runs, task logs, dependency graphs, trigger manual runs, and manage connections &amp; variables.</td>
-            </tr>
-            <tr>
-                <td><strong>Metadata Database</strong></td>
-                <td>A PostgreSQL / MySQL database storing all DAG definitions, task instance states, run history, XComs, connections, and variables. The operational state of the entire system lives here.</td>
-            </tr>
-            <tr>
-                <td><strong>Workers</strong></td>
-                <td>The processes (or Pods) that actually execute task code. Stateless — can be scaled horizontally.</td>
-            </tr>
-        </table>
-
-        <h4>Key Airflow Operators</h4>
-        <ul>
-            <li><code>PythonOperator</code> — Execute a Python callable.</li>
-            <li><code>BashOperator</code> — Run a shell command.</li>
-            <li><code>SnowflakeOperator</code> — Execute a SQL statement on Snowflake via a Connection.</li>
-            <li><code>S3KeySensor</code> — Wait for a specific S3 key to exist.</li>
-            <li><code>DbtRunOperator</code> / <code>DbtTestOperator</code> — Trigger dbt models and tests.</li>
-            <li><code>TriggerDagRunOperator</code> — Trigger another DAG from within a DAG (pipeline chaining).</li>
-            <li><code>ShortCircuitOperator</code> — Conditionally skip downstream tasks based on runtime logic (e.g., skip Gold rebuild if no new Silver data arrived).</li>
-        </ul>
-
-        <h3>3. Orchestration Tools Comparison</h3>
-        <table>
-            <tr>
-                <th>Tool</th>
-                <th>Model</th>
-                <th>Differentiator</th>
-                <th>Best For</th>
-            </tr>
-            <tr>
-                <td><strong>Apache Airflow</strong></td>
-                <td>Task-based DAG</td>
-                <td>Most mature, largest community, Python-native DAGs.</td>
-                <td>Enterprise standard; most data engineering teams.</td>
-            </tr>
-            <tr>
-                <td><strong>Prefect</strong></td>
-                <td>Task / Flow based</td>
-                <td>Simpler Python API, better dynamic DAG support, hybrid cloud execution (local + cloud agent).</td>
-                <td>Teams wanting cleaner code than Airflow; rapid pipeline development.</td>
-            </tr>
-            <tr>
-                <td><strong>Dagster</strong></td>
-                <td>Asset-based</td>
-                <td>You define <em>data assets</em> (what data is produced), not tasks. Built-in lineage, partitioning, and observability. Paradigm shift from Airflow.</td>
-                <td>Teams wanting deep data observability and asset-centric pipeline thinking.</td>
-            </tr>
-            <tr>
-                <td><strong>dbt Cloud</strong></td>
-                <td>Job-based</td>
-                <td>Orchestration built into dbt. Handles dbt-native dependencies automatically. No separate scheduler needed for dbt-only workflows.</td>
-                <td>Pure dbt organizations; simpler stacks.</td>
-            </tr>
-            <tr>
-                <td><strong>AWS Step Functions</strong></td>
-                <td>State machine</td>
-                <td>Serverless, fully managed, integrates natively with all AWS services (Lambda, Glue, ECS, SageMaker).</td>
-                <td>AWS-first organizations. Serverless / Lambda-heavy architectures.</td>
-            </tr>
-        </table>
-
-        <h3>4. DataOps Principles</h3>
-        <p>DataOps applies DevOps engineering discipline to data pipelines — emphasizing automation, collaboration, monitoring, and rapid iteration:</p>
-        <ol>
-            <li><strong>Automated Testing:</strong> Every pipeline change triggers automated schema tests, row-count checks, and business rule validations before the code is deployed to production.</li>
-            <li><strong>CI/CD for Data Pipelines:</strong> All changes go through Pull Request review → automated testing on a dev schema → staged deployment (DEV → QA → PROD).</li>
-            <li><strong>Version Control Everything:</strong> SQL models, Python scripts, DAG definitions, infrastructure (Terraform), and configuration are all in Git. No "hero scripts" on someone's laptop.</li>
-            <li><strong>Monitoring &amp; Alerting:</strong> Pipeline failures, quality degradations, and SLA breaches trigger automatic alerts to the responsible team — not discovered by an angry business user on a Monday morning.</li>
-            <li><strong>Shift-Left Quality:</strong> Catch data quality issues as early as possible — at Bronze ingestion — not after they have propagated to Gold layer dashboards where they are expensive to fix.</li>
-            <li><strong>Fast Feedback Loops:</strong> Slim down local development cycles. Engineers should be able to run a pipeline end-to-end on a sample dataset in minutes, not hours.</li>
-            <li><strong>Modular Design:</strong> Each pipeline stage is independently deployable and testable. A failure in the Gold layer should not prevent the Silver layer from updating.</li>
-        </ol>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 9 — OPERATIONS, MESH & CI/CD
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Operations" class="tabcontent">
-        <h2>Operations, Data Mesh &amp; CI/CD for Data</h2>
-
-        <h3>1. Centralized vs. Decentralized — Data Mesh</h3>
-        <p>In a centralized model, a single platform team owns all data engineering for the entire company. As the company scales, this team becomes a permanent bottleneck — every new report requires a ticket. <strong>Data Mesh</strong> solves this structurally.</p>
-
-        <h4>The 4 Principles of Data Mesh (Zhamak Dehghani)</h4>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>1. Domain Ownership</h4>
-                Data is owned and managed by the business domain that generates it. The Sales domain owns Sales data. Finance owns Finance data. Each domain has its own embedded data engineers. Data is co-located with the teams that understand it best.
-            </div>
-            <div class="concept-card">
-                <h4>2. Data as a Product</h4>
-                Each domain treats its data outputs as formal products — not just tables. Products are discoverable, reliable, documented, versioned, and supported. Domains are accountable for quality and SLAs.
-            </div>
-            <div class="concept-card">
-                <h4>3. Self-Serve Data Platform</h4>
-                A central Platform Team provides shared infrastructure — provisioned Snowflake environments, dbt project templates, Airflow instances, CI/CD pipelines, catalog tooling. Domain teams consume this platform to stay autonomous without reinventing the wheel.
-            </div>
-            <div class="concept-card">
-                <h4>4. Federated Computational Governance</h4>
-                Global standards are defined centrally (PII classification, interoperability formats, security policies) but enforced computationally at the domain level (via automated CI checks, policy-as-code). Avoids both chaos (no governance) and bottleneck (central approval for everything).
-            </div>
-        </div>
-
-        <div class="note">
-            <strong>Data Mesh is an organizational and architectural paradigm, not a technology.</strong> You can implement Data Mesh on Snowflake + dbt + Airflow. The shift is in ownership, accountability, and how teams are structured — not which tools you use.
-        </div>
-
-        <h3>2. ETL vs. ELT</h3>
-        <table>
-            <tr>
-                <th>Dimension</th>
-                <th>ETL (Extract, Transform, Load)</th>
-                <th>ELT (Extract, Load, Transform)</th>
-            </tr>
-            <tr>
-                <td><strong>Where transform happens</strong></td>
-                <td>In a dedicated ETL server / middleware <em>before</em> loading into the DWH.</td>
-                <td>Raw data loads into the DWH first; transformation runs inside the DWH using SQL.</td>
-            </tr>
-            <tr>
-                <td><strong>Raw data preserved?</strong></td>
-                <td>No — only transformed data lands in the warehouse. Raw is discarded.</td>
-                <td>Yes — raw data always preserved in Bronze. Full re-transformation is possible at any time.</td>
-            </tr>
-            <tr>
-                <td><strong>Scalability</strong></td>
-                <td>Limited by ETL server CPU/RAM. Scaling requires bigger (expensive) servers.</td>
-                <td>Scales with the DWH compute cluster (elastic, pay-per-query in cloud DWHs).</td>
-            </tr>
-            <tr>
-                <td><strong>Tooling</strong></td>
-                <td>SSIS, Informatica PowerCenter, Talend, Pentaho — legacy enterprise tools.</td>
-                <td>dbt + Snowflake / BigQuery / Redshift. Modern default.</td>
-            </tr>
-            <tr>
-                <td><strong>Use today?</strong></td>
-                <td>Legacy systems. Strict compliance scenarios where raw sensitive data (PII, PHI) cannot be stored in the DWH.</td>
-                <td>Modern default for cloud data platforms. Cloud compute is cheap and elastic.</td>
-            </tr>
-        </table>
-
-        <h3>3. dbt (Data Build Tool) — Deep Dive</h3>
-        <p>dbt is the modern standard transformation tool. Engineers write simple <code>SELECT</code> statements; dbt handles DDL, dependency resolution, testing, and documentation automatically.</p>
-        <table>
-            <tr>
-                <th>dbt Feature</th>
-                <th>What It Does</th>
-            </tr>
-            <tr>
-                <td><strong>Models</strong></td>
-                <td>Each <code>.sql</code> file is a model. dbt compiles it into a <code>CREATE TABLE AS</code> or <code>CREATE VIEW AS</code> statement. Reference other models with <code>{{ ref('model_name') }}</code> — this builds the DAG automatically.</td>
-            </tr>
-            <tr>
-                <td><strong>Materializations</strong></td>
-                <td>Control how a model is persisted: <code>view</code> (no storage, always computed), <code>table</code> (full rebuild each run), <code>incremental</code> (only process new/changed rows — critical for large tables), <code>ephemeral</code> (a CTE, not materialized at all).</td>
-            </tr>
-            <tr>
-                <td><strong>DAG / Lineage Graph</strong></td>
-                <td>dbt infers the full dependency graph from <code>ref()</code> and <code>source()</code> calls. Executes models in the correct order. Visualized in the docs site.</td>
-            </tr>
-            <tr>
-                <td><strong>Tests</strong></td>
-                <td>Schema tests run after every build: <code>not_null</code>, <code>unique</code>, <code>accepted_values</code>, <code>relationships</code>. Custom SQL tests and dbt-expectations package tests for advanced validation. Test failures can block downstream model execution.</td>
-            </tr>
-            <tr>
-                <td><strong>Documentation</strong></td>
-                <td>Auto-generated HTML site with lineage graph, model descriptions, column-level descriptions, and test results. Serves as a living data catalog for dbt models.</td>
-            </tr>
-            <tr>
-                <td><strong>Snapshots</strong></td>
-                <td>Built-in SCD Type 2 implementation. Define a snapshot with a strategy (<code>timestamp</code> or <code>check</code>) and dbt manages effective dates and the current flag automatically.</td>
-            </tr>
-            <tr>
-                <td><strong>Macros</strong></td>
-                <td>Jinja-based reusable SQL templates. Write a macro once (e.g., a date-spine generator, a standardized column naming convention); reuse across hundreds of models.</td>
-            </tr>
-            <tr>
-                <td><strong>Seeds</strong></td>
-                <td>Static CSV files (currency codes, country codes, status mappings) committed to the repo and loaded into the DWH as tables via <code>dbt seed</code>.</td>
-            </tr>
-            <tr>
-                <td><strong>Sources</strong></td>
-                <td>Declare upstream raw tables (Bronze layer) with <code>source()</code>. Enables source freshness testing — dbt can alert if a Bronze table hasn't been updated in X hours.</td>
-            </tr>
-        </table>
-
-        <h3>4. CI/CD Pipeline for Data</h3>
-        <ol>
-            <li><strong>Developer pushes a feature branch</strong> with a new or modified dbt model / Airflow DAG.</li>
-            <li><strong>CI runs automatically on PR:</strong> <code>dbt compile</code> (validate SQL syntax), <code>sqlfluff lint</code> (enforce SQL style), <code>dbt build --select state:modified+</code> (build only changed models and their children against a dev schema), run all tests.</li>
-            <li><strong>Peer review</strong> of the diff + CI results.</li>
-            <li><strong>Merge to main</strong> triggers CD: auto-deploy to QA environment, run full test suite, promote to PROD on success.</li>
-            <li><strong>Rollback strategy:</strong> Because Bronze is append-only and Gold models are rebuilt from Silver/Bronze SQL, a broken Gold model can be rolled back by reverting the dbt code and rebuilding — no point-in-time database restore needed.</li>
-        </ol>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 10 — DATA PRODUCTS
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="DataProducts" class="tabcontent">
-        <h2>Deep Dive: Data Products</h2>
-        <p>A Data Product is the deliberate packaging of Gold layer data as a reliable, governed, consumer-oriented asset — a fundamental shift from "data as a pipeline byproduct" to "data as a managed product with an owner, SLA, and support model."</p>
-
-        <div class="note">
-            <strong>Table vs. Data Product:</strong> A table is rows and columns. A Data Product is the table <em>plus</em> discoverability, ownership, quality guarantees, semantic documentation, versioning, and ongoing support — like a software product, but for data.
-        </div>
-
-        <h3>1. Types of Data Products</h3>
-        <table>
-            <tr>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Consumer</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Dataset / Table / View</strong></td>
-                <td>A clean, governed Snowflake table or secure view with documented schema and SLA.</td>
-                <td>Data analysts, BI developers, other data teams.</td>
-                <td><code>GOLD.FACT_SALES</code> with daily SLA and column-level definitions.</td>
-            </tr>
-            <tr>
-                <td><strong>Report / Dashboard</strong></td>
-                <td>A pre-built visualization published to a BI platform.</td>
-                <td>Business users, executives.</td>
-                <td>Monthly Revenue Dashboard. Daily Operations Report in Tableau.</td>
-            </tr>
-            <tr>
-                <td><strong>Data API</strong></td>
-                <td>A REST or GraphQL endpoint serving data programmatically to applications.</td>
-                <td>Application developers, microservices, external partners.</td>
-                <td>Product Catalog API returning current pricing in JSON. Customer 360 lookup API.</td>
-            </tr>
-            <tr>
-                <td><strong>ML Training Dataset</strong></td>
-                <td>A curated, versioned dataset with verified features and labels for model training.</td>
-                <td>Data scientists, ML engineers.</td>
-                <td>Customer Churn prediction dataset: 24 months of behavioral features with churn labels.</td>
-            </tr>
-            <tr>
-                <td><strong>Feature Store</strong></td>
-                <td>Pre-computed, continuously updated feature vectors for low-latency model serving.</td>
-                <td>ML models in production, real-time scoring services.</td>
-                <td>Real-time fraud risk features updated every 5 minutes for the fraud scoring model.</td>
-            </tr>
-            <tr>
-                <td><strong>Event Stream</strong></td>
-                <td>A governed, documented Kafka topic or Kinesis stream with schema registry.</td>
-                <td>Downstream microservices, streaming analytics applications.</td>
-                <td>Order Events Kafka topic consumed by 5 downstream services with Avro schema contract.</td>
-            </tr>
-        </table>
-
-        <h3>2. The 8 Characteristics of a Data Product</h3>
-        <ol>
-            <li><strong>Discoverable:</strong> Registered in a Data Catalog (Alation, Collibra, DataHub, Atlan). Indexed with business-friendly tags so any employee can find it with a keyword search — without asking the data team.</li>
-            <li><strong>Addressable:</strong> Has a unique, stable, permanent location — a Snowflake schema path, API endpoint, Kafka topic name, or S3 URI. These identifiers never change without a versioning &amp; migration process.</li>
-            <li><strong>Trustworthy (SLAs):</strong> Backed by a Service Level Agreement. The owner formally commits to: "Updated by 8:00 AM daily. 99% data quality test pass rate. Incident response within 30 minutes."</li>
-            <li><strong>Self-Describing:</strong> The product contains its own metadata — column definitions, business glossary mappings, example queries, data dictionary. Consumers should never need to email the engineering team to understand what a column means.</li>
-            <li><strong>Interoperable:</strong> Uses global enterprise standards: ISO 8601 dates, ISO 4217 currency codes, shared customer / product master keys. Joinable with other Data Products without ambiguity or manual key mapping.</li>
-            <li><strong>Natively Accessible:</strong> Each consumer type gets their preferred interface — SQL analysts get a view, app developers get an API, data scientists get a pandas-ready notebook endpoint. No consumer should need to build a pipeline to access the product.</li>
-            <li><strong>Secure by Default:</strong> Row-level security, column-level masking for PII, and RBAC access controls are built into the product at creation time — not bolted on later. The default posture is deny; access is explicitly granted.</li>
-            <li><strong>Versioned:</strong> Breaking schema changes (column renames, type changes, column removals) are versioned (v1 → v2) with a deprecation notice and migration guide. Old versions remain available during a defined transition period.</li>
-        </ol>
-
-        <h3>3. SLA vs. SLO vs. SLI</h3>
-        <table>
-            <tr>
-                <th>Term</th>
-                <th>Full Name</th>
-                <th>What It Is</th>
-                <th>Data Engineering Example</th>
-            </tr>
-            <tr>
-                <td><strong>SLI</strong></td>
-                <td>Service Level Indicator</td>
-                <td>The actual <em>measured</em> metric from the system.</td>
-                <td>Measured: "Gold.Fact_Sales was last updated at 7:45 AM today."</td>
-            </tr>
-            <tr>
-                <td><strong>SLO</strong></td>
-                <td>Service Level Objective</td>
-                <td>The internal <em>target</em> for the SLI. If the SLI breaches the SLO, the team is alerted.</td>
-                <td>Target: "Gold.Fact_Sales must be updated by 8:00 AM on 99% of business days."</td>
-            </tr>
-            <tr>
-                <td><strong>SLA</strong></td>
-                <td>Service Level Agreement</td>
-                <td>The formal, contractual commitment with consequences if breached. Usually set softer than the SLO to give internal buffer.</td>
-                <td>Contract: "If Fact_Sales is not updated by 8:30 AM, the data team will notify Finance within 15 minutes and provide an ETA."</td>
-            </tr>
-        </table>
-
-        <h3>4. Data Contracts (Producer–Consumer)</h3>
-        <p>A Data Contract is the binding schema and semantic agreement between a Data Product owner (producer) and its consumers. It is treated like a software API contract:</p>
-        <ul>
-            <li><strong>Schema Contract:</strong> Column names, types, and nullability are guaranteed stable. Changes require a versioned migration.</li>
-            <li><strong>Semantic Contract:</strong> Business definitions are stable. "Net_Revenue" always means revenue after returns and discounts — not gross.</li>
-            <li><strong>Quality Contract:</strong> Freshness, completeness, and accuracy SLOs are formally stated.</li>
-            <li><strong>Breaking Change Policy:</strong> Any breaking change (column rename, type widening, removal) requires a minimum 30-day notice, a versioned transition path, and simultaneous availability of both old and new schemas.</li>
-        </ul>
-
-        <h3>5. Data Product Lifecycle</h3>
-        <ol>
-            <li><strong>Discover:</strong> Identify the business need. Who are the consumers? What decisions will this data enable? Is this product already built somewhere?</li>
-            <li><strong>Design:</strong> Define the Data Contract, schema, SLA, security model, and ownership <em>before</em> writing a single line of pipeline code.</li>
-            <li><strong>Build:</strong> Implement Bronze → Silver → Gold pipeline. Write data quality tests. Register in catalog with full documentation.</li>
-            <li><strong>Publish:</strong> Grant access to initial consumers. Set up monitoring and alerting. Announce availability.</li>
-            <li><strong>Operate:</strong> Monitor SLAs, respond to quality incidents, handle consumer support questions.</li>
-            <li><strong>Iterate:</strong> Add new columns, improve performance, or extend coverage based on consumer feedback. Non-breaking changes only — new columns are backward-compatible.</li>
-            <li><strong>Deprecate:</strong> Notify all consumers with a formal sunset date. Provide a migration guide to the replacement product. Remove access only after the sunset date passes.</li>
-        </ol>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 11 — GOVERNANCE & TRUST
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="Governance" class="tabcontent">
-        <h2>Governance &amp; Data Trust</h2>
-        <p>Data Governance is the framework of policies, processes, and accountabilities that prevents a Data Lakehouse from becoming a Data Swamp — where data is present but untrustworthy, undefined, or inaccessible to the right people.</p>
-
-        <h3>1. Data Classification Levels</h3>
-        <table>
-            <tr>
-                <th>Classification</th>
-                <th>Description</th>
-                <th>Examples</th>
-                <th>Required Controls</th>
-            </tr>
-            <tr>
-                <td><strong>Public</strong></td>
-                <td>Freely shareable with anyone, including external parties.</td>
-                <td>Product catalog, public pricing, press releases.</td>
-                <td>None beyond standard web access controls.</td>
-            </tr>
-            <tr>
-                <td><strong>Internal</strong></td>
-                <td>For employees only. Not for external sharing.</td>
-                <td>Internal reports, org charts, project documentation.</td>
-                <td>Basic authentication. Not shared outside the company.</td>
-            </tr>
-            <tr>
-                <td><strong>Confidential</strong></td>
-                <td>Sensitive business information with limited internal distribution.</td>
-                <td>Financial forecasts, M&amp;A plans, contract values, customer lists.</td>
-                <td>RBAC. Audit logging. Need-to-know access.</td>
-            </tr>
-            <tr>
-                <td><strong>PII</strong></td>
-                <td>Personally Identifiable Information — can identify a specific individual.</td>
-                <td>Full name, email, phone, SSN, passport number, IP address, device ID, precise location.</td>
-                <td>Masking / tokenization in non-production. GDPR / CCPA right-to-deletion. Access audit logs. Column-level security.</td>
-            </tr>
-            <tr>
-                <td><strong>PHI</strong></td>
-                <td>Protected Health Information — health data linked to an individual.</td>
-                <td>Diagnoses, prescriptions, medical record numbers, insurance information.</td>
-                <td>HIPAA compliance. Encryption at rest and in transit. BAA required for processors. Strict audit logging.</td>
-            </tr>
-            <tr>
-                <td><strong>PCI</strong></td>
-                <td>Payment Card Industry data — credit card and cardholder data.</td>
-                <td>Card numbers, CVV, expiration dates, cardholder names.</td>
-                <td>PCI-DSS compliance. Tokenization mandatory. No storage of CVV after authorization. Quarterly vulnerability scans.</td>
-            </tr>
-        </table>
-
-        <h3>2. RBAC vs. ABAC</h3>
-        <table>
-            <tr>
-                <th>Model</th>
-                <th>Description</th>
-                <th>Example</th>
-                <th>Best For</th>
-            </tr>
-            <tr>
-                <td><strong>RBAC<br>(Role-Based Access Control)</strong></td>
-                <td>Access is granted to roles; users are assigned roles. All users in a role get identical permissions.</td>
-                <td>Users in the <code>FINANCE_ANALYST</code> role can SELECT on all Finance Gold tables. No one else can.</td>
-                <td>Most enterprises. Simple to implement, audit, and explain to regulators.</td>
-            </tr>
-            <tr>
-                <td><strong>ABAC<br>(Attribute-Based Access Control)</strong></td>
-                <td>Access controlled by attributes of the user, the data, and the environment — evaluated dynamically at query time.</td>
-                <td>A US-region analyst can only see customer records WHERE <code>customer.region = user.region</code>. A European user cannot see US PII even in the same role.</td>
-                <td>Regulated industries (healthcare, banking). Multi-regional companies with geographic data residency requirements.</td>
-            </tr>
-        </table>
-        <div class="note">
-            <strong>Snowflake implementation:</strong> RBAC is native (grants on roles). ABAC is implemented via Row Access Policies (row-level filtering) and Dynamic Data Masking (column-level masking) — both evaluated at query runtime.
-        </div>
-
-        <h3>3. Data Masking Techniques</h3>
-        <table>
-            <tr>
-                <th>Technique</th>
-                <th>Description</th>
-                <th>Reversible?</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Static Masking</strong></td>
-                <td>Replace PII with a fixed mask character. Permanent data transformation — used in non-production environments.</td>
-                <td>No</td>
-                <td><code>john.doe@company.com</code> → <code>***@***.***</code></td>
-            </tr>
-            <tr>
-                <td><strong>Dynamic Masking</strong></td>
-                <td>Masking applied at query time based on the calling role — underlying data unchanged in storage. Different roles see different views of the same column.</td>
-                <td>N/A (data unchanged)</td>
-                <td>Analyst role sees <code>***@***.***</code>. Admin role sees <code>john.doe@company.com</code>. Same Snowflake column, different output per role.</td>
-            </tr>
-            <tr>
-                <td><strong>Pseudonymization</strong></td>
-                <td>Replace PII with a consistent but opaque token. The same real value always maps to the same pseudonym — enabling analytics without exposing PII.</td>
-                <td>Yes (with mapping table, strictly controlled)</td>
-                <td><code>John Doe</code> → <code>CUST_8472</code>. Aggregations still work; individual identity is hidden.</td>
-            </tr>
-            <tr>
-                <td><strong>Tokenization</strong></td>
-                <td>Replace sensitive values with random tokens. A secure, separate vault maps tokens back to real values. Token is meaningless without the vault.</td>
-                <td>Yes (vault access required)</td>
-                <td>Credit card <code>4111-1111-1111-1111</code> → <code>TKN-9F2A-3B41</code>. Only the payment processor's vault system can reverse it.</td>
-            </tr>
-            <tr>
-                <td><strong>Generalization</strong></td>
-                <td>Replace a specific value with a less precise range or category — reduces re-identification risk in aggregate datasets.</td>
-                <td>No</td>
-                <td>Age <code>34</code> → <code>30–39</code>. ZIP code <code>90210</code> → <code>902**</code>. Salary <code>$87,500</code> → <code>$80K–$100K</code>.</td>
-            </tr>
-        </table>
-
-        <h3>4. Compliance Frameworks</h3>
-        <table>
-            <tr>
-                <th>Framework</th>
-                <th>Scope</th>
-                <th>Key Data Engineering Requirements</th>
-            </tr>
-            <tr>
-                <td><strong>GDPR</strong></td>
-                <td>EU — anyone processing personal data of EU citizens globally.</td>
-                <td>Right to access (provide a copy of stored PII on request). Right to erasure ("right to be forgotten" — must delete PII across all systems). Consent tracking. Data breach notification within 72 hours. Data minimization.</td>
-            </tr>
-            <tr>
-                <td><strong>CCPA / CPRA</strong></td>
-                <td>California, USA — businesses meeting revenue or data volume thresholds.</td>
-                <td>Right to know what data is collected and for what purpose. Right to opt-out of data sale. Right to deletion. Non-discrimination against users who exercise rights.</td>
-            </tr>
-            <tr>
-                <td><strong>HIPAA</strong></td>
-                <td>USA — covered healthcare entities and their business associates.</td>
-                <td>Strict PHI access controls. Encryption at rest (AES-256) and in transit (TLS 1.2+). Comprehensive audit logs. Business Associate Agreements for any processor of PHI.</td>
-            </tr>
-            <tr>
-                <td><strong>PCI-DSS</strong></td>
-                <td>Global — any entity storing, processing, or transmitting payment card data.</td>
-                <td>Tokenize card data at point of capture. Never store CVV/CVV2. Restrict access strictly. Segment the cardholder data environment. Quarterly network scans, annual audits.</td>
-            </tr>
-            <tr>
-                <td><strong>SOC 2</strong></td>
-                <td>B2B SaaS and data service providers.</td>
-                <td>Annual third-party audit against 5 Trust Service Criteria: Security, Availability, Processing Integrity, Confidentiality, Privacy. Must demonstrate data engineering controls formally.</td>
-            </tr>
-        </table>
-
-        <h3>5. The Data Catalog Ecosystem</h3>
-        <table>
-            <tr>
-                <th>Concept</th>
-                <th>Definition</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Technical Metadata</strong></td>
-                <td>Physical, machine-readable properties of the data.</td>
-                <td><code>user_id VARCHAR(50) NOT NULL</code> stored in <code>GOLD.DIM_CUSTOMER</code>, last updated 2026-06-08 07:45 UTC, 4.2M rows.</td>
-            </tr>
-            <tr>
-                <td><strong>Business Glossary</strong></td>
-                <td>The enterprise dictionary mapping synonymous business terms to a single official definition.</td>
-                <td>"Client," "Buyer," "Shopper," "Account," "End User" are all officially mapped to the single term <strong>"Customer"</strong> with a precise definition approved by the business.</td>
-            </tr>
-            <tr>
-                <td><strong>Semantics</strong></td>
-                <td>Business logic rules that define what computed or derived terms mean.</td>
-                <td>"Active Customer" = a customer who placed at least one order in the last 90 days. "Churned Customer" = active 91–180 days ago but not in the last 90.</td>
-            </tr>
-            <tr>
-                <td><strong>Data Lineage</strong></td>
-                <td>A visual map of data movement — table-level and column-level — from source to consumption. Enables root-cause analysis when data breaks.</td>
-                <td><code>GOLD.Fact_Sales.Net_Revenue</code> ← derived from <code>SILVER.ODS_Orders.amount_usd</code> minus <code>SILVER.ODS_Returns.refund_usd</code> ← originally from <code>BRONZE.SAP_VBAP.NETWR</code> and <code>BRONZE.SAP_VBRK.NETWR</code>.</td>
-            </tr>
-            <tr>
-                <td><strong>Data Stewardship</strong></td>
-                <td>Named individuals (data stewards) accountable for maintaining data quality, definitions, and governance within a specific domain.</td>
-                <td>The Finance Data Steward reviews and approves all proposed changes to the "Revenue" business definition before they are published in the catalog.</td>
-            </tr>
-        </table>
-
-        <h3>6. Master Data Management (MDM)</h3>
-        <p>MDM creates a single, authoritative "golden record" for critical shared enterprise entities — eliminating the ambiguity that arises when the same real-world entity is represented differently across multiple source systems.</p>
-        <ul>
-            <li><strong>Problem:</strong> Salesforce stores "RSI International." SAP stores "RSI International, Inc." Workday stores "RSI." These are the same company — but joining them produces 3× duplicate revenue figures.</li>
-            <li><strong>MDM Solution:</strong> A matching and merging process (probabilistic or deterministic) creates one master record with a <strong>Golden Customer ID</strong> that all other systems reference.</li>
-            <li><strong>Common MDM Domains:</strong> Customer MDM, Product / Item MDM, Vendor / Supplier MDM, Employee MDM, Location MDM.</li>
-            <li><strong>Styles:</strong> Registry (MDM maintains mapping but data stays in source), Consolidation (MDM reads all sources, creates read-only golden record), Coexistence (MDM pushes golden key back to all systems), Centralized (single system of record).</li>
-        </ul>
-
-        <h3>7. Schema Registry &amp; Evolution</h3>
-        <p>When using event streaming (Kafka) with structured formats (Avro, Protobuf), a <strong>Schema Registry</strong> stores and enforces the schema of every topic:</p>
-        <ul>
-            <li>Producers serialize messages against the registered schema — invalid messages are rejected before landing in Kafka.</li>
-            <li>Consumers deserialize using the same registered schema — no field-by-field guessing.</li>
-            <li><strong>Compatibility modes:</strong> Backward (new schema can read old data), Forward (old schema can read new data), Full (both). Critical for managing schema changes without downtime.</li>
-            <li><strong>Popular tools:</strong> Confluent Schema Registry, AWS Glue Schema Registry.</li>
-        </ul>
-
-        <h3>8. Data Retention &amp; Storage Tiers</h3>
-        <ul>
-            <li>Define a data retention policy for each classification level: GDPR may require deletion of PII after its purpose expires; SOX may require financial records for 7 years.</li>
-            <li>Automate lifecycle transitions: move data from Snowflake (Hot) → S3 Standard-IA (Warm) → S3 Glacier (Cold) as it ages, using S3 Lifecycle Policies or Snowflake Data Retention settings.</li>
-            <li>Maintain a data inventory: know exactly what PII you hold, where it is, and when each record's retention period expires — required by GDPR Article 30.</li>
-        </ul>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════
-         TAB 12 — DATA QUALITY & OBSERVABILITY
-    ═══════════════════════════════════════════════════════════ -->
-    <div id="DQObservability" class="tabcontent">
-        <h2>Data Quality &amp; Observability</h2>
-        <p>Reliable Data Products require continuous, automated validation and monitoring. <strong>Data Quality</strong> defines the rules that data must conform to. <strong>Data Observability</strong> continuously monitors production data to detect when reality diverges from those rules — automatically, in real time.</p>
-
-        <div class="note">
-            <strong>Key distinction:</strong> Data Quality tests are deterministic rules ("this column must be not-null"). Data Observability is ML-driven anomaly detection ("this column's null rate suddenly spiked from 1% to 35% — that's unusual relative to its 30-day history"). You need both.
-        </div>
-
-        <h3>1. The 7 Dimensions of Data Quality</h3>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>Completeness</h4>
-                Are all expected records and fields present? <em>Are we missing rows? Are mandatory columns populated?</em> Example: <code>customer_email</code> should be populated on 98%+ of rows.
-            </div>
-            <div class="concept-card">
-                <h4>Accuracy</h4>
-                Does the data correctly represent the real-world entity? <em>Is the value true?</em> Example: Does the revenue figure in Gold match the source ERP system's own ledger?
-            </div>
-            <div class="concept-card">
-                <h4>Consistency</h4>
-                Is the same data represented identically across systems and tables? <em>Does the same fact contradict itself?</em> Example: "John Smith" in Salesforce vs. "John Smyth" in SAP — same person, different spelling.
-            </div>
-            <div class="concept-card">
-                <h4>Timeliness (Freshness)</h4>
-                Is data available when consumers need it? <em>Is it current enough to make decisions?</em> Example: The daily sales table must be updated before the 8:00 AM business review.
-            </div>
-            <div class="concept-card">
-                <h4>Uniqueness</h4>
-                Are there no unintended duplicate records? <em>Does each entity appear exactly once?</em> Example: <code>ORDER_ID</code> must appear exactly once in <code>Fact_Orders</code> — duplicates inflate revenue metrics.
-            </div>
-            <div class="concept-card">
-                <h4>Validity</h4>
-                Does data conform to the defined format, range, and business rules? <em>Is the value in the acceptable domain?</em> Example: <code>order_status</code> must be one of <code>('OPEN','SHIPPED','CLOSED','CANCELLED')</code>.
-            </div>
-            <div class="concept-card">
-                <h4>Integrity</h4>
-                Are referential relationships intact across tables? <em>Are foreign keys valid?</em> Example: Every <code>customer_id</code> in <code>Fact_Sales</code> must exist in <code>Dim_Customer</code> — orphaned keys indicate broken joins.
-            </div>
-        </div>
-
-        <h3>2. The Data Testing Pyramid</h3>
-        <table>
-            <tr>
-                <th>Level</th>
-                <th>Test Type</th>
-                <th>What It Checks</th>
-                <th>Example</th>
-            </tr>
-            <tr>
-                <td><strong>Level 1 (Base)</strong></td>
-                <td>Schema Tests</td>
-                <td>Column names, data types, not-null constraints, primary key uniqueness.</td>
-                <td><code>order_id</code> is unique and not null. <code>revenue</code> is a DECIMAL type.</td>
-            </tr>
-            <tr>
-                <td><strong>Level 2</strong></td>
-                <td>Row-Level Value Tests</td>
-                <td>Accepted value lists, range checks, format validation via regex.</td>
-                <td><code>status</code> ∈ ('OPEN','CLOSED'). <code>amount</code> ≥ 0. <code>email</code> matches regex <code>^[^@]+@[^@]+\.[^@]+$</code>.</td>
-            </tr>
-            <tr>
-                <td><strong>Level 3</strong></td>
-                <td>Referential Integrity Tests</td>
-                <td>Foreign keys in fact tables must have matching rows in dimension tables.</td>
-                <td>Every <code>product_id</code> in Fact_Sales must exist in Dim_Product. Every <code>customer_id</code> must exist in Dim_Customer.</td>
-            </tr>
-            <tr>
-                <td><strong>Level 4</strong></td>
-                <td>Business Rule Tests</td>
-                <td>Custom domain logic that reflects actual business definitions and constraints.</td>
-                <td>Revenue for CANCELLED orders must be 0 or negative (refund). Total invoice line items must sum to the invoice header total within ±$0.01. Shipped_Date must be ≥ Order_Date.</td>
-            </tr>
-            <tr>
-                <td><strong>Level 5 (Top)</strong></td>
-                <td>Cross-Dataset / Reconciliation Tests</td>
-                <td>Aggregate comparisons across pipeline layers or against external ground-truth systems.</td>
-                <td>Row count in Silver must equal Bronze (zero data loss). Total Gold revenue must match the finance system ledger within 0.01%. Daily loaded row count must be within ±20% of the 30-day rolling average.</td>
-            </tr>
-        </table>
-
-        <h3>3. dbt Built-In Tests</h3>
-        <p>dbt ships with four schema tests applicable to any column in <code>schema.yml</code>:</p>
-        <ul>
-            <li><code>not_null</code> — No NULL values in the column.</li>
-            <li><code>unique</code> — No duplicate values in the column.</li>
-            <li><code>accepted_values</code> — All values belong to a specified list.</li>
-            <li><code>relationships</code> — Foreign key column references a valid row in another model.</li>
-        </ul>
-        <p>The <strong>dbt-utils</strong> and <strong>dbt-expectations</strong> packages extend this with advanced tests: row count thresholds, distribution checks, regex validation, cardinality checks, and column-value comparison across models.</p>
-
-        <h3>4. The 5 Pillars of Data Observability</h3>
-        <p>Observability goes beyond static rule tests — it continuously monitors production data for <em>unexpected</em> changes, even when no code was deployed. ML-based anomaly detection identifies issues that static thresholds miss.</p>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>1. Freshness</h4>
-                <em>Is data being updated at the expected frequency?</em><br><br>
-                Alert if <code>Fact_Sales</code> hasn't received new rows in 26 hours when its normal cadence is every 24 hours. Staleness is often the first signal that an upstream pipeline has silently failed.
-            </div>
-            <div class="concept-card">
-                <h4>2. Volume</h4>
-                <em>Is the row count within expected bounds?</em><br><br>
-                Alert if today's ingestion loaded 50% fewer rows than the 30-day average — likely a source system issue, a dropped partition, or a pipeline filter bug. Also alert on unexpected volume spikes.
-            </div>
-            <div class="concept-card">
-                <h4>3. Schema</h4>
-                <em>Has the table structure changed unexpectedly?</em><br><br>
-                Alert if a column was dropped, renamed, or had its data type changed by an upstream source team — without going through the agreed Data Contract change process.
-            </div>
-            <div class="concept-card">
-                <h4>4. Distribution</h4>
-                <em>Have the statistical properties of column values shifted unexpectedly?</em><br><br>
-                Alert if the average <code>order_value</code> suddenly drops by 40% — may indicate a currency conversion bug, a timezone misalignment, or a new product category with $0 prices.
-            </div>
-            <div class="concept-card">
-                <h4>5. Lineage</h4>
-                <em>When an issue is detected, what caused it and what is affected?</em><br><br>
-                Column-level lineage shows exactly which upstream transformation introduced the anomaly, and which downstream dashboards and Data Products are now serving bad data. Enables instant scope-of-impact assessment.
-            </div>
-        </div>
-
-        <h3>5. Data Quality &amp; Observability Tools</h3>
-        <table>
-            <tr>
-                <th>Tool</th>
-                <th>Type</th>
-                <th>Description</th>
-            </tr>
-            <tr>
-                <td><strong>dbt tests</strong></td>
-                <td>Schema + business rule testing</td>
-                <td>Native to the transformation layer. Tests compile to SQL and run after every <code>dbt build</code>. Results stored in the DWH — queryable like any other table.</td>
-            </tr>
-            <tr>
-                <td><strong>Great Expectations</strong></td>
-                <td>Comprehensive DQ framework (open source)</td>
-                <td>Python-based. Define "Expectations" (rules) on a dataset. Generates HTML validation reports. Can block pipeline execution on failure. Integrates with Airflow, Spark, and dbt.</td>
-            </tr>
-            <tr>
-                <td><strong>Monte Carlo</strong></td>
-                <td>Data Observability platform (commercial)</td>
-                <td>ML-powered anomaly detection for freshness, volume, schema changes, and distribution shifts. Full lineage graph. Automated incident creation with downstream impact analysis.</td>
-            </tr>
-            <tr>
-                <td><strong>elementary (dbt)</strong></td>
-                <td>Observability for dbt (open source)</td>
-                <td>Collects dbt test results, run metadata, and source freshness into Snowflake tables. Provides an HTML observability report and Slack alerting for dbt-native stacks — without requiring a commercial tool.</td>
-            </tr>
-            <tr>
-                <td><strong>Soda Core</strong></td>
-                <td>DQ framework (open source)</td>
-                <td>YAML-defined quality checks against any SQL data source. Integrates with Airflow as a quality gate within a DAG. Results pushed to Soda Cloud for centralized monitoring.</td>
-            </tr>
-            <tr>
-                <td><strong>Acceldata</strong></td>
-                <td>Observability platform (commercial)</td>
-                <td>Multi-engine data observability covering pipeline reliability, data quality, and compute cost anomaly detection across Spark, Snowflake, and Hadoop clusters.</td>
-            </tr>
-        </table>
-
-        <h3>6. Circuit Breakers &amp; Quality Gates</h3>
-        <p>A <strong>Circuit Breaker</strong> halts a pipeline automatically when data quality falls below a threshold — preventing bad data from propagating to Gold layer tables, dashboards, and business decisions.</p>
-        <div class="concept-grid">
-            <div class="concept-card">
-                <h4>Hard Stop (Circuit Breaker)</h4>
-                Pipeline fails immediately. No data is written to the next layer. Alerts are sent to the data team and stakeholders. Used when bad data would be catastrophically misleading — financial reporting, regulatory submissions.
-            </div>
-            <div class="concept-card">
-                <h4>Soft Stop (Warn + Continue)</h4>
-                Pipeline continues but logs a warning and sends an alert to the data steward. Used for non-critical anomalies where partial or slightly degraded data is better than no data.
-            </div>
-            <div class="concept-card">
-                <h4>Quarantine Pattern</h4>
-                Failing rows are routed to a <code>_QUARANTINE</code> table instead of being dropped. The main pipeline continues with clean rows. Quarantined rows are investigated and reprocessed (or discarded) after review.
-            </div>
-        </div>
-
-        <h3>7. SLA Monitoring &amp; Incident Management</h3>
-        <ul>
-            <li>Define a data SLA for every Data Product: "Updated by 7:00 AM daily on 99.5% of business days."</li>
-            <li>Implement automated SLA monitoring in your orchestration tool (Airflow SLA callbacks) or observability platform — fire alerts <em>before</em> business users notice.</li>
-            <li>Maintain an SLA breach log. Track Mean Time to Detection (MTTD) and Mean Time to Resolution (MTTR) for data incidents. Trend these metrics over time to surface chronically unreliable pipelines.</li>
-            <li>Establish an incident runbook: who is the on-call for a given Data Product? What is the escalation path? How is the impact communicated to downstream consumers?</li>
-            <li>Conduct blameless post-mortems on significant incidents — focus on process and system improvements, not individual fault. Document the root cause and preventive measures in a shared incident log.</li>
-        </ul>
-    </div>
-
-</div><!-- .container -->
+</div>
 
 <script>
     function openTab(evt, tabName) {
         var i, tabcontent, tablinks;
-
         tabcontent = document.getElementsByClassName("tabcontent");
         for (i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
         }
-
         tablinks = document.getElementsByClassName("tablinks");
         for (i = 0; i < tablinks.length; i++) {
             tablinks[i].className = tablinks[i].className.replace(" active", "");
         }
-
         document.getElementById(tabName).style.display = "block";
         evt.currentTarget.className += " active";
     }
