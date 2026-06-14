@@ -36,9 +36,10 @@
         header h1 { margin: 0 0 10px 0; font-size: 32px; }
         header p { margin: 0; font-size: 16px; opacity: 0.9; }
 
+        /* CHANGED: Container explicitly forced to stack vertically */
         .container {
             display: flex;
-            flex-direction: column; /* Stacks navigation on top of content */
+            flex-direction: column; 
             max-width: 1700px;
             margin: 20px auto;
             background: white;
@@ -48,36 +49,37 @@
             min-height: 85vh;
         }
 
+        /* CHANGED: Forced navigation to the absolute top of the content */
         .tab {
-            width: 100%;
+            width: 100% !important;
+            min-width: 100% !important;
             background-color: var(--tab-bg);
-            display: flex;
-            flex-direction: row; /* Arranges tabs side-by-side horizontally */
-            border-right: none;
-            border-bottom: 1px solid var(--border-color);
-            overflow-x: auto; /* Enables swipeable/scrollable tabs on mobile */
-            white-space: nowrap; /* Prevents text wrapping onto new lines */
-            position: sticky; /* Keeps the navigation bar pinned to the top */
+            display: flex !important;
+            flex-direction: row !important; /* Horizontally aligned elements */
+            border-right: none !important;
+            border-bottom: 2px solid var(--border-color);
+            overflow-x: auto; /* Allow swipe scrolling on mobile phones */
+            white-space: nowrap; /* Prevent tabs from forcing down into a messy grid */
+            position: sticky;
             top: 0;
             z-index: 100;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS devices */
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Hide default scrollbars for a cleaner navigation bar appearance */
+        /* Clean scroll indicator for mobile phone swipe bars */
         .tab::-webkit-scrollbar {
-            height: 5px;
+            height: 4px;
         }
         .tab::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.1);
-            border-radius: 4px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 2px;
         }
 
+        /* CHANGED: Adjusted buttons to look correct sitting on top */
         .tab button {
             background-color: inherit;
             color: var(--text-color);
             padding: 14px 20px;
-            width: auto; /* Dynamic sizing based on content text */
-            flex: 0 0 auto; /* Stops tabs from forcing squished sizes */
             border: none;
             outline: none;
             text-align: center;
@@ -85,30 +87,31 @@
             transition: 0.2s;
             font-size: 13px;
             font-weight: 600;
-            border-bottom: 4px solid transparent; /* Visual layout swap to bottom borders */
-            border-left: none;
+            display: inline-block;
+            flex: 0 0 auto;
+            border-bottom: 4px solid transparent !important;
+            border-left: none !important;
         }
 
         .tab button:hover {
             background-color: var(--tab-hover);
-            border-bottom: 4px solid var(--secondary-color);
-            border-left: none;
+            border-bottom: 4px solid var(--secondary-color) !important;
+            border-left: none !important;
         }
 
         .tab button.active {
-            background-color: white;
-            color: var(--primary-color);
-            border-bottom: 4px solid var(--primary-color);
-            border-left: none;
+            background-color: white !important;
+            color: var(--primary-color) !important;
+            border-bottom: 4px solid var(--primary-color) !important;
+            border-left: none !important;
         }
 
         .tabcontent {
             display: none;
-            padding: 30px 20px; /* Enhanced internal padding tuning for screens */
+            padding: 20px;
             flex: 1;
-            overflow-y: auto;
         }
-        
+
         @media (min-width: 768px) {
             .tabcontent {
                 padding: 40px 55px;
@@ -126,7 +129,7 @@
         .tabcontent h3 { color: var(--secondary-color); margin-top: 35px; font-size: 20px; }
         .tabcontent h4 { color: var(--primary-color); margin-top: 18px; font-size: 16px; }
 
-        /* Mobile responsive wrapper for heavy table components */
+        /* Responsive wrapper for table components */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -152,24 +155,6 @@
         .warning {
             background-color: #fffbeb;
             border-left: 5px solid var(--accent-color);
-            padding: 16px 20px;
-            margin: 20px 0;
-            border-radius: 0 4px 4px 0;
-            font-size: 14px;
-        }
-
-        .success {
-            background-color: #f0fff4;
-            border-left: 5px solid #38a169;
-            padding: 16px 20px;
-            margin: 20px 0;
-            border-radius: 0 4px 4px 0;
-            font-size: 14px;
-        }
-
-        .danger {
-            background-color: #fff5f5;
-            border-left: 5px solid #e53e3e;
             padding: 16px 20px;
             margin: 20px 0;
             border-radius: 0 4px 4px 0;
@@ -211,18 +196,6 @@
             color: #c53030;
         }
 
-        pre {
-            background: #f0f4f8;
-            padding: 14px 18px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 13px;
-            border-left: 3px solid var(--secondary-color);
-            margin: 15px 0;
-        }
-
-        pre code { background: none; padding: 0; color: #2d3748; }
-
         .tag {
             display: inline-block;
             padding: 2px 9px;
@@ -235,8 +208,6 @@
         .tag-blue   { background: #bee3f8; color: #2c5282; }
         .tag-green  { background: #c6f6d5; color: #276749; }
         .tag-yellow { background: #fefcbf; color: #744210; }
-        .tag-red    { background: #fed7d7; color: #742a2a; }
-        .tag-purple { background: #e9d8fd; color: #553c9a; }
     </style>
 </head>
 <body>
@@ -248,113 +219,41 @@
 
 <div class="container">
     <div class="tab">
-        <button class="tablinks active"  onclick="openTab(event,'Lifecycle')">1. The Complete Data Lifecycle</button>
-        <button class="tablinks"         onclick="openTab(event,'Storage')">2. Storage &amp; DB Foundations</button>
-        <button class="tablinks"         onclick="openTab(event,'Modeling')">3. Data Modeling (3NF → Kimball)</button>
-        <button class="tablinks"         onclick="openTab(event,'SCD')">4. Handling History (SCD Types)</button>
-        <button class="tablinks"         onclick="openTab(event,'Medallion')">5. The Medallion Architecture</button>
-        <button class="tablinks"         onclick="openTab(event,'DataVault')">6. Data Vault 2.0</button>
-        <button class="tablinks"         onclick="openTab(event,'Ingestion')">7. Ingestion Patterns &amp; CDC</button>
-        <button class="tablinks"         onclick="openTab(event,'Orchestration')">8. Orchestration &amp; DataOps</button>
-        <button class="tablinks"         onclick="openTab(event,'Operations')">9. Operations, Mesh &amp; CI/CD</button>
-        <button class="tablinks"         onclick="openTab(event,'DataProducts')">10. Deep Dive: Data Products</button>
-        <button class="tablinks"         onclick="openTab(event,'Governance')">11. Governance &amp; Trust</button>
-        <button class="tablinks"         onclick="openTab(event,'DQObservability')">12. Data Quality &amp; Observability</button>
+        <button class="tablinks active" onclick="openTab(event,'Lifecycle')">1. The Complete Data Lifecycle</button>
+        <button class="tablinks"        onclick="openTab(event,'Storage')">2. Storage &amp; DB Foundations</button>
+        <button class="tablinks"        onclick="openTab(event,'Modeling')">3. Data Modeling (3NF → Kimball)</button>
+        <button class="tablinks"        onclick="openTab(event,'SCD')">4. Handling History (SCD Types)</button>
+        <button class="tablinks"        onclick="openTab(event,'Medallion')">5. The Medallion Architecture</button>
+        <button class="tablinks"        onclick="openTab(event,'DataVault')">6. Data Vault 2.0</button>
+        <button class="tablinks"        onclick="openTab(event,'Ingestion')">7. Ingestion Patterns &amp; CDC</button>
+        <button class="tablinks"        onclick="openTab(event,'Orchestration')">8. Orchestration &amp; DataOps</button>
+        <button class="tablinks"        onclick="openTab(event,'Operations')">9. Operations, Mesh &amp; CI/CD</button>
+        <button class="tablinks"        onclick="openTab(event,'DataProducts')">10. Deep Dive: Data Products</button>
+        <button class="tablinks"        onclick="openTab(event,'Governance')">11. Governance &amp; Trust</button>
+        <button class="tablinks"        onclick="openTab(event,'DQObservability')">12. Data Quality &amp; Observability</button>
     </div>
 
+    <!-- TAB 1 — THE COMPLETE DATA LIFECYCLE -->
     <div id="Lifecycle" class="tabcontent" style="display:block;">
         <h2>The Complete Data Engineering Lifecycle</h2>
-        <p>A Data Engineer must understand the <strong>end-to-end journey of data</strong> — from its birth in a source system to its eventual archival. Every stage introduces risk; missing or mishandling any stage contributes to what is known as a <em>Data Swamp</em>.</p>
+        <p>A Data Engineer must understand the <strong>end-to-end journey of data</strong> — from its birth in a source system to its eventual archival.</p>
 
         <div class="note">
-            <strong>Key Principle — Data as a Product:</strong> Data should be treated as a first-class asset at every stage: discoverable, trustworthy, governed, and well-understood — not just present in a table.
+            <strong>Key Principle — Data as a Product:</strong> Data should be treated as a first-class asset at every stage.
         </div>
 
         <div class="lifecycle-box">
             <strong>Stage 1 · Data Generation</strong><br>
             Data originates from source systems. Types of sources:
             <ul>
-                <li><strong>OLTP Databases:</strong> ERP (SAP), CRM (Salesforce), e-commerce backends — high-frequency transactional writes.</li>
-                <li><strong>IoT &amp; Sensors:</strong> Machine telemetry, GPS, environmental sensors — high-volume, continuous streams.</li>
-                <li><strong>SaaS APIs:</strong> REST / GraphQL APIs from third-party platforms (Hubspot, Stripe, Workday).</li>
-                <li><strong>Event Streams:</strong> Clickstreams, user-behavior events published to message brokers.</li>
-                <li><strong>Files:</strong> CSV uploads, EDI feeds, PDF exports, flat-file drops on SFTP.</li>
+                <li><strong>OLTP Databases:</strong> ERP (SAP), CRM (Salesforce).</li>
+                <li><strong>IoT &amp; Sensors:</strong> Machine telemetry, GPS.</li>
             </ul>
-            Data formats: <span class="tag tag-blue">Structured (rows &amp; columns)</span> <span class="tag tag-green">Semi-structured (JSON / XML / Avro)</span> <span class="tag tag-yellow">Unstructured (images / video / free text)</span>
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 2 · Data Ingestion (Extract / Load)</strong><br>
-            Data is moved from sources into the data platform. Four main patterns:
-            <ul>
-                <li><strong>Full Batch:</strong> Entire source table extracted on each run. Simple, but expensive at scale.</li>
-                <li><strong>Incremental Batch:</strong> Only rows changed since the last run (using a watermark column). Far more efficient for large tables.</li>
-                <li><strong>Streaming:</strong> Events flow in real-time via message brokers (Kafka, Kinesis). Millisecond latency, higher operational complexity.</li>
-                <li><strong>CDC (Change Data Capture):</strong> Captures only INSERT / UPDATE / DELETE operations from the source system's transaction log — the gold standard for efficiency and completeness. See Tab 7 for a deep dive.</li>
-            </ul>
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 3 · Raw Storage (Landing Zone)</strong><br>
-            Data lands in a raw storage zone — a Data Lake (S3 / ADLS / GCS), a staging database, or an object store. The core rule: <em>get it in, unchanged</em>. File format choices (Parquet, Avro, JSON) made here have downstream performance and cost consequences. See Tab 2 for formats.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 4 · Data Profiling &amp; Discovery</strong><br>
-            Before building transformations, engineers statistically profile the data to understand its true state — not how it <em>should</em> look, but how it <em>actually</em> looks:
-            <ul>
-                <li>What percentage of each column is NULL?</li>
-                <li>What are the min / max / average values of numeric fields?</li>
-                <li>Are there duplicate rows based on a business key?</li>
-                <li>Do referential integrity constraints hold between tables?</li>
-                <li>Are there anomalous string lengths or outlier values?</li>
-            </ul>
-            Building pipelines without profiling is one of the most expensive mistakes in data engineering — assumptions made here haunt pipelines for years.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 5 · Transformation &amp; Processing (ELT / ETL)</strong><br>
-            Raw data is cleaned, standardized, enriched, and joined. Business rules (semantics) are applied here: deduplication, null handling, type casting, currency normalization, timezone standardization, code-table mapping. This is the ELT step in a modern Data Lakehouse (transform <em>inside</em> the warehouse using SQL / dbt).
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 6 · Data Modeling</strong><br>
-            Transformed data is restructured into a formal analytical model — Star Schema, Data Vault, 3NF, or One Big Table — optimized for the query patterns of its consumers. The model determines query speed, ease of understanding, and how well the data can answer historical questions. See Tabs 3–6.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 7 · Orchestration &amp; Scheduling</strong><br>
-            A pipeline scheduler (Apache Airflow, Prefect, Dagster) coordinates execution: ensuring Stage 5 does not run before Stage 4 completes, handling failures gracefully, retrying on transient errors, and sending SLA-breach alerts. Without orchestration, pipelines break silently — no one knows. See Tab 8.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 8 · Serving &amp; Data Products</strong><br>
-            Clean, modeled data is exposed to consumers as dashboards (Tableau, Power BI), SQL views, REST APIs, or ML training datasets. In a modern Data Mesh, these are packaged as formal <em>Data Products</em> with documented SLAs, ownership, and quality guarantees. See Tab 10.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 9 · Data Quality &amp; Observability (Continuous)</strong><br>
-            Automated testing and monitoring run on every pipeline execution to detect freshness failures, volume anomalies, schema changes, and accuracy degradation — before business users notice. This is not a one-time activity; it runs perpetually in production. See Tab 12.
-        </div>
-
-        <div class="lifecycle-box">
-            <strong>Stage 10 · Governance, Compliance &amp; Archiving</strong><br>
-            Tracking data lineage (where data came from and where it went), enforcing role-based access control (RBAC), applying classification labels (PII, PHI, PCI), ensuring regulatory compliance (GDPR, CCPA, HIPAA), and archiving cold data to cheaper storage tiers to reduce cost. See Tab 11.
-        </div>
-
-        <h3>The Data Contract — The Glue Between Stages</h3>
-        <p>A <strong>Data Contract</strong> is a formal, versioned agreement between a data <em>producer</em> (the team generating data) and a data <em>consumer</em> (the team using it). It codifies:</p>
-        <ul>
-            <li><strong>Schema:</strong> Column names, data types, and nullability guarantees.</li>
-            <li><strong>Semantics:</strong> What each field means in business terms.</li>
-            <li><strong>SLA:</strong> Freshness guarantees — when data will be available and at what quality level.</li>
-            <li><strong>Breaking Change Policy:</strong> How schema changes will be communicated, with advance notice and versioning.</li>
-        </ul>
-        <div class="warning">
-            <strong>Without Data Contracts:</strong> A source team can silently rename a column overnight and every downstream pipeline fails at midnight. Data Contracts are the contract-first discipline that prevents this class of failure entirely.
+            Data formats: <span class="tag tag-blue">Structured</span> <span class="tag tag-green">Semi-structured</span> <span class="tag tag-yellow">Unstructured</span>
         </div>
     </div>
 
+    <!-- TAB 2 — STORAGE & DB FOUNDATIONS -->
     <div id="Storage" class="tabcontent">
         <h2>Storage &amp; Database Foundations</h2>
 
@@ -362,27 +261,11 @@
         <div class="concept-grid">
             <div class="concept-card">
                 <h4>Database (OLTP DB)</h4>
-                Organized storage for running applications. Row-based. Optimized for fast reads/writes of individual rows. Examples: PostgreSQL, MySQL, SQL Server, Oracle.
+                Organized storage for running applications. Row-based. Optimized for fast reads/writes.
             </div>
             <div class="concept-card">
                 <h4>Data Warehouse (DWH)</h4>
-                Centralized repository for analytics and reporting. Columnar storage. Optimized for scanning millions of rows across few columns. Examples: Snowflake, BigQuery, Redshift.
-            </div>
-            <div class="concept-card">
-                <h4>Data Mart</h4>
-                A focused, department-specific subset of the Data Warehouse. Sales, Finance, and Marketing each get a purpose-built mart for faster, simpler queries scoped to their domain.
-            </div>
-            <div class="concept-card">
-                <h4>Data Lake</h4>
-                A vast pool of raw data in native formats (JSON, CSV, Parquet, images, video). Schema applied at query time ("schema on read"). Primary home for ML datasets and archival.
-            </div>
-            <div class="concept-card">
-                <h4>Data Lakehouse ⭐</h4>
-                A modern hybrid: raw files stored in a Data Lake (S3 / ADLS / GCS) but accessed with Data Warehouse capabilities — ACID transactions, SQL, indexing, schema enforcement — via open table formats (Delta Lake, Apache Iceberg).
-            </div>
-            <div class="concept-card">
-                <h4>Operational Data Store (ODS)</h4>
-                A near-real-time integration layer holding the <em>current state</em> of operational data integrated from multiple source systems. Designed for current-state queries, not deep historical analytics.
+                Centralized repository for analytics. Columnar storage. Examples: Snowflake, BigQuery.
             </div>
         </div>
 
@@ -395,71 +278,9 @@
                     <th>Columnar (OLAP)</th>
                 </tr>
                 <tr>
-                    <td><strong>Physical layout</strong></td>
-                    <td>All columns of one row are stored together on disk: <em>(id=1, name='Alice', age=30) → (id=2, name='Bob', age=25)</em></td>
-                    <td>Each column stored together: <em>all IDs, then all names, then all ages</em></td>
-                </tr>
-                <tr>
                     <td><strong>Best for</strong></td>
-                    <td>Reading or writing a single row quickly. INSERT / UPDATE / DELETE transactions.</td>
-                    <td>Aggregating a single column across millions of rows: <code>SELECT SUM(revenue) …</code></td>
-                </tr>
-                <tr>
-                    <td><strong>Compression</strong></td>
-                    <td>Poor — each "chunk" is heterogeneous (mixed types), compresses badly.</td>
-                    <td>Excellent — homogeneous column data (all integers, all dates) compresses 5–10×.</td>
-                </tr>
-                <tr>
-                    <td><strong>I/O efficiency</strong></td>
-                    <td>Must read every column even if only one is needed.</td>
-                    <td>Only reads columns referenced in the query — "column pruning."</td>
-                </tr>
-                <tr>
-                    <td><strong>Examples</strong></td>
-                    <td>PostgreSQL, MySQL, Oracle, SQL Server</td>
-                    <td>Snowflake, BigQuery, Redshift, Apache Parquet files</td>
-                </tr>
-            </table>
-        </div>
-
-        <h3>3. OLTP vs. OLAP vs. HTAP</h3>
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <th>Feature</th>
-                    <th>OLTP (Online Transaction Processing)</th>
-                    <th>OLAP (Online Analytical Processing)</th>
-                    <th>HTAP (Hybrid)</th>
-                </tr>
-                <tr>
-                    <td><strong>Purpose</strong></td>
-                    <td>Run the business (app backends, e-commerce)</td>
-                    <td>Analyze the business (BI, dashboards, reporting)</td>
-                    <td>Both simultaneously on one platform</td>
-                </tr>
-                <tr>
-                    <td><strong>Query types</strong></td>
-                    <td>Fast, simple INSERT / UPDATE / DELETE</td>
-                    <td>Complex SELECT with massive aggregations &amp; JOINs</td>
-                    <td>Mix of transactional and analytical</td>
-                </tr>
-                <tr>
-                    <td><strong>Row count per query</strong></td>
-                    <td>1–100 rows</td>
-                    <td>Millions–billions of rows</td>
-                    <td>Both extremes</td>
-                </tr>
-                <tr>
-                    <td><strong>Concurrency</strong></td>
-                    <td>Thousands of short concurrent transactions</td>
-                    <td>Handful of long-running analytical queries</td>
-                    <td>Manages both workloads</td>
-                </tr>
-                <tr>
-                    <td><strong>Examples</strong></td>
-                    <td>PostgreSQL, MySQL, Oracle</td>
-                    <td>Snowflake, BigQuery, Redshift</td>
-                    <td>SingleStore, TiDB, Snowflake Unistore</td>
+                    <td>Reading or writing a single row quickly.</td>
+                    <td>Aggregating massive columns.</td>
                 </tr>
             </table>
         </div>
@@ -475,10 +296,11 @@
         }
         tablinks = document.getElementsByClassName("tablinks");
         for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
+            // Fixes class swapping errors
+            tablinks[i].classList.remove("active");
         }
         document.getElementById(tabName).style.display = "block";
-        evt.currentTarget.className += " active";
+        evt.currentTarget.classList.add("active");
     }
 </script>
 
